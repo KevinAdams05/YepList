@@ -12,4 +12,10 @@
     <PackageReference Include="Krypton.Toolkit" Version="100.26.1.19" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
