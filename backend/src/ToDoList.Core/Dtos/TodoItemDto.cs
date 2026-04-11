@@ -1,0 +1,18 @@
+using System;
+
+namespace ToDoList.Core.Dtos
+{
+    public class TodoItemDto
+    {
+        public long ItemId { get; set; }
+        public long ListId { get; set; }
+        public long? CategoryId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public bool IsCompleted { get; set; }
+        public DateTime? DueDate { get; set; }
+        public int SortOrder { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+    }
+}

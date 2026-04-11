@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoList - Documentation</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --surface2: #0f3460;
+            --primary: #e94560;
+            --accent: #53d8fb;
+            --text: #e0e0e0;
+            --text-muted: #a0a0b0;
+            --border: #2a2a4a;
+            --code-bg: #0d1117;
+            --success: #4caf50;
+            --warning: #ff9800;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-size: 1.3rem;
+            padding: 0 24px 16px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 8px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar nav a:hover,
+        .sidebar nav a.active {
+            color: var(--accent);
+            background: rgba(83, 216, 251, 0.08);
+        }
+
+        .sidebar nav .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 16px 24px 4px;
+        }
+
+        /* Main content */
+        .content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 48px;
+            max-width: 960px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin: 32px 0 12px;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin: 24px 0 8px;
+        }
+
+        p { margin-bottom: 12px; }
+
+        section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--surface2);
+            color: var(--accent);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover td { background: rgba(83, 216, 251, 0.04); }
+
+        /* Code */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 12px 0;
+            border: 1px solid var(--border);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-get { background: #1b5e20; color: #a5d6a7; }
+        .badge-post { background: #e65100; color: #ffcc80; }
+        .badge-put { background: #0d47a1; color: #90caf9; }
+        .badge-patch { background: #4a148c; color: #ce93d8; }
+        .badge-delete { background: #b71c1c; color: #ef9a9a; }
+
+        /* Diagram containers */
+        .diagram {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .diagram .mermaid {
+            display: inline-block;
+        }
+
+        /* Info boxes */
+        .info-box {
+            border-left: 4px solid var(--accent);
+            background: rgba(83, 216, 251, 0.06);
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box.warning {
+            border-left-color: var(--warning);
+            background: rgba(255, 152, 0, 0.06);
+        }
+
+        /* File tree */
+        .file-tree {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+
+        .file-tree .dir { color: var(--accent); }
+        .file-tree .file { color: var(--text-muted); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .content { margin-left: 0; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h1>ToDoList Docs</h1>
+            <nav>
+                <div class="section-title">Overview</div>
+                <a href="#overview" class="active" onclick="showSection('overview')">Architecture</a>
+                <a href="#data-model" onclick="showSection('data-model')">Data Model</a>
+
+                <div class="section-title">Backend</div>
+                <a href="#api-reference" onclick="showSection('api-reference')">REST API Reference</a>
+                <a href="#backend-structure" onclick="showSection('backend-structure')">Project Structure</a>
+                <a href="#sync" onclick="showSection('sync')">Sync Strategy</a>
+
+                <div class="section-title">Clients</div>
+                <a href="#windows" onclick="showSection('windows')">Windows (WinForms)</a>
+                <a href="#linux" onclick="showSection('linux')">Linux (Vala/GTK4)</a>
+                <a href="#android" onclick="showSection('android')">Android (Kotlin)</a>
+
+                <div class="section-title">Operations</div>
+                <a href="#deployment" onclick="showSection('deployment')">Deployment</a>
+                <a href="#database" onclick="showSection('database')">Database Setup</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+
+            <!-- ─── OVERVIEW ──────────────────────────────────── -->
+            <section id="overview" class="active">
+                <h2>Architecture Overview</h2>
+                <p>ToDoList is a cross-platform task management application with a shared REST API backend and three native clients.</p>
+
+                <div class="diagram">
+                    <pre class="mermaid">
+graph TB
+    subgraph Clients
+        W["Windows<br/>C# WinForms + Krypton"]
+        L["Linux<br/>Vala + GTK4/libadwaita"]
+        A["Android<br/>Kotlin + Material 3"]
+    end
+
+    subgraph Server ["Linux Server (Ubuntu)"]
+        API["ASP.NET Core<br/>REST API<br/>Port 5000"]
+        DB[("MySQL 8.0<br/>todolist DB")]
+    end
+
+    W -->|"HTTP REST"| API
+    L -->|"HTTP REST"| API
+    A -->|"HTTP REST"| API
+    API -->|"Dapper"| DB
+
+    style W fill:#4a148c,stroke:#ce93d8,color:#fff
+    style L fill:#1b5e20,stroke:#a5d6a7,color:#fff
+    style A fill:#e65100,stroke:#ffcc80,color:#fff
+    style API fill:#0d47a1,stroke:#90caf9,color:#fff
+    style DB fill:#b71c1c,stroke:#ef9a9a,color:#fff
+                    </pre>
+                </div>
+
+                <h3>Technology Stack</h3>
+                <table>
+                    <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+                    <tr><td>Backend API</td><td>ASP.NET Core 10 + Dapper</td><td>REST API, data access</td></tr>
+                    <tr><td>Database</td><td>MySQL 8.0</td><td>Persistent storage</td></tr>
+                    <tr><td>Windows Client</td><td>C# WinForms + Krypton Toolkit</td><td>Desktop app with modern UI</td></tr>
+                    <tr><td>Linux Client</td><td>Vala + GTK4 + libadwaita</td><td>Native GNOME desktop app</td></tr>
+                    <tr><td>Android Client</td><td>Kotlin + Retrofit + Glance</td><td>Mobile app with home widgets</td></tr>
+                </table>
+
+                <h3>Key Design Decisions</h3>
+                <ul>
+                    <li><strong>Dapper over EF Core</strong> &mdash; lightweight, explicit SQL, easy to debug</li>
+                    <li><strong>MySQL</strong> &mdash; handles concurrent client connections, runs natively on Ubuntu</li>
+                    <li><strong>Timestamp-based sync</strong> &mdash; simple polling vs. WebSocket complexity</li>
+                    <li><strong>No auth in v1</strong> &mdash; personal app on home network</li>
+                    <li><strong>Separate solutions</strong> &mdash; backend deploys to Linux, Windows client is Windows-only</li>
+                </ul>
+            </section>
+
+            <!-- ─── DATA MODEL ────────────────────────────────── -->
+            <section id="data-model">
+                <h2>Data Model</h2>
+
+                <div class="diagram">
+                    <pre class="mermaid">
+erDiagram
+    todo_list ||--o{ todo_item : "has many"
+    category ||--o{ todo_item : "has many"
+
+    todo_list {
+        bigint list_id PK
+        varchar name
+        int sort_order
+        datetime created_date
+        datetime modified_date
+    }
+
+    category {
+        bigint category_id PK
+        varchar name
+        varchar color
+        datetime created_date
+        datetime modified_date
+    }
+
+    todo_item {
+        bigint item_id PK
+        bigint list_id FK
+        bigint category_id FK
+        varchar title
+        text notes
+        tinyint is_completed
+        date due_date
+        int sort_order
+        datetime created_date
+        datetime modified_date
+    }
+
+    deleted_entity {
+        bigint id PK
+        varchar entity_type
+        bigint entity_id
+        datetime deleted_date
+    }
+                    </pre>
+                </div>
+
+                <h3>Relationships</h3>
+                <ul>
+                    <li><strong>TodoList &rarr; TodoItem</strong>: One-to-many. Deleting a list cascades to all its items.</li>
+                    <li><strong>Category &rarr; TodoItem</strong>: One-to-many (nullable). Deleting a category sets items' category to NULL.</li>
+                    <li><strong>DeletedEntity</strong>: Tracks deletions for sync. Clients use this to remove deleted items locally.</li>
+                </ul>
+
+                <h3>Key Columns</h3>
+                <div class="info-box">
+                    <strong>modified_date</strong> &mdash; MySQL's <code>ON UPDATE CURRENT_TIMESTAMP</code> automatically updates this on every row change. This column drives the entire sync mechanism.
+                </div>
+            </section>
+
+            <!-- ─── API REFERENCE ─────────────────────────────── -->
+            <section id="api-reference">
+                <h2>REST API Reference</h2>
+                <p>Base URL: <code>http://&lt;server&gt;:5000/api</code></p>
+
+                <h3>Lists</h3>
+                <table>
+                    <tr><th>Method</th><th>Path</th><th>Body</th><th>Response</th></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/lists</code></td><td>&mdash;</td><td>TodoListDto[]</td></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/lists/{id}</code></td><td>&mdash;</td><td>TodoListDto</td></tr>
+                    <tr><td><span class="badge badge-post">POST</span></td><td><code>/api/lists</code></td><td><code>{ name, sortOrder }</code></td><td>201 + TodoListDto</td></tr>
+                    <tr><td><span class="badge badge-put">PUT</span></td><td><code>/api/lists/{id}</code></td><td><code>{ name, sortOrder }</code></td><td>TodoListDto</td></tr>
+                    <tr><td><span class="badge badge-delete">DELETE</span></td><td><code>/api/lists/{id}</code></td><td>&mdash;</td><td>204</td></tr>
+                </table>
+
+                <h3>Categories</h3>
+                <table>
+                    <tr><th>Method</th><th>Path</th><th>Body</th><th>Response</th></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/categories</code></td><td>&mdash;</td><td>CategoryDto[]</td></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/categories/{id}</code></td><td>&mdash;</td><td>CategoryDto</td></tr>
+                    <tr><td><span class="badge badge-post">POST</span></td><td><code>/api/categories</code></td><td><code>{ name, color }</code></td><td>201 + CategoryDto</td></tr>
+                    <tr><td><span class="badge badge-put">PUT</span></td><td><code>/api/categories/{id}</code></td><td><code>{ name, color }</code></td><td>CategoryDto</td></tr>
+                    <tr><td><span class="badge badge-delete">DELETE</span></td><td><code>/api/categories/{id}</code></td><td>&mdash;</td><td>204</td></tr>
+                </table>
+
+                <h3>Items</h3>
+                <table>
+                    <tr><th>Method</th><th>Path</th><th>Body</th><th>Response</th></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/lists/{listId}/items</code></td><td>&mdash;</td><td>TodoItemDto[]</td></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/items/{id}</code></td><td>&mdash;</td><td>TodoItemDto</td></tr>
+                    <tr><td><span class="badge badge-post">POST</span></td><td><code>/api/lists/{listId}/items</code></td><td><code>{ title, notes, categoryId, dueDate, sortOrder }</code></td><td>201 + TodoItemDto</td></tr>
+                    <tr><td><span class="badge badge-put">PUT</span></td><td><code>/api/items/{id}</code></td><td><code>{ title, notes, categoryId, isCompleted, dueDate, sortOrder }</code></td><td>TodoItemDto</td></tr>
+                    <tr><td><span class="badge badge-patch">PATCH</span></td><td><code>/api/items/{id}/complete</code></td><td><code>{ isCompleted }</code></td><td>TodoItemDto</td></tr>
+                    <tr><td><span class="badge badge-delete">DELETE</span></td><td><code>/api/items/{id}</code></td><td>&mdash;</td><td>204</td></tr>
+                </table>
+
+                <h3>Sync</h3>
+                <table>
+                    <tr><th>Method</th><th>Path</th><th>Query Params</th><th>Response</th></tr>
+                    <tr><td><span class="badge badge-get">GET</span></td><td><code>/api/sync</code></td><td><code>?since=2026-04-11T10:00:00Z</code></td><td>SyncResponseDto</td></tr>
+                </table>
+
+                <h4>SyncResponseDto Shape</h4>
+<pre><code>{
+  "serverTime": "2026-04-11T12:00:00Z",
+  "lists": [ ... ],
+  "categories": [ ... ],
+  "items": [ ... ],
+  "deletedItemIds": [5, 12],
+  "deletedListIds": [],
+  "deletedCategoryIds": []
+}</code></pre>
+            </section>
+
+            <!-- ─── BACKEND STRUCTURE ─────────────────────────── -->
+            <section id="backend-structure">
+                <h2>Backend Project Structure</h2>
+
+                <div class="diagram">
+                    <pre class="mermaid">
+graph LR
+    API["ToDoList.Api<br/>(ASP.NET Core)"] --> Core["ToDoList.Core<br/>(Models, DTOs)"]
+    API --> Data["ToDoList.Data<br/>(Repositories)"]
+    Data --> Core
+    Data -->|"MySqlConnector<br/>+ Dapper"| DB[("MySQL")]
+
+    style API fill:#0d47a1,stroke:#90caf9,color:#fff
+    style Core fill:#4a148c,stroke:#ce93d8,color:#fff
+    style Data fill:#1b5e20,stroke:#a5d6a7,color:#fff
+    style DB fill:#b71c1c,stroke:#ef9a9a,color:#fff
+                    </pre>
+                </div>
+
+                <div class="file-tree">
+<pre>
+<span class="dir">backend/</span>
+  ToDoList.sln
+  <span class="dir">src/</span>
+    <span class="dir">ToDoList.Core/</span>           <span class="file"># Models, DTOs, interfaces (no dependencies)</span>
+      <span class="dir">Models/</span>
+        <span class="file">TodoItem.cs, TodoList.cs, Category.cs, DeletedEntity.cs</span>
+      <span class="dir">Dtos/</span>
+        <span class="file">TodoItemDto.cs, TodoListDto.cs, CategoryDto.cs</span>
+        <span class="file">SyncResponseDto.cs</span>
+        <span class="file">Create/Update request DTOs...</span>
+      <span class="dir">Interfaces/</span>
+        <span class="file">IDbConnectionFactory.cs</span>
+    <span class="dir">ToDoList.Data/</span>            <span class="file"># Dapper + MySqlConnector</span>
+      <span class="file">DbConnectionFactory.cs</span>
+      <span class="dir">Schema/</span>
+        <span class="file">init.sql</span>
+      <span class="dir">Repositories/</span>
+        <span class="file">TodoListRepository.cs</span>
+        <span class="file">TodoItemRepository.cs</span>
+        <span class="file">CategoryRepository.cs</span>
+        <span class="file">DeletedEntityRepository.cs</span>
+    <span class="dir">ToDoList.Api/</span>             <span class="file"># ASP.NET Core Web API</span>
+      <span class="file">Program.cs</span>
+      <span class="file">appsettings.json</span>
+      <span class="dir">Controllers/</span>
+        <span class="file">TodoListsController.cs</span>
+        <span class="file">TodoItemsController.cs</span>
+        <span class="file">CategoriesController.cs</span>
+        <span class="file">SyncController.cs</span>
+      <span class="dir">wwwroot/docs/</span>
+        <span class="file">index.html (this documentation)</span>
+</pre>
+                </div>
+
+                <h3>NuGet Packages</h3>
+                <table>
+                    <tr><th>Project</th><th>Package</th><th>Purpose</th></tr>
+                    <tr><td>ToDoList.Data</td><td>Dapper</td><td>Micro-ORM for data access</td></tr>
+                    <tr><td>ToDoList.Data</td><td>MySqlConnector</td><td>Async MySQL driver</td></tr>
+                    <tr><td>ToDoList.Data</td><td>Microsoft.Extensions.Configuration.Abstractions</td><td>IConfiguration interface</td></tr>
+                </table>
+            </section>
+
+            <!-- ─── SYNC ──────────────────────────────────────── -->
+            <section id="sync">
+                <h2>Sync Strategy</h2>
+
+                <div class="diagram">
+                    <pre class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant A as API Server
+    participant D as MySQL
+
+    Note over C: lastSyncTime = 0 (first sync)
+
+    C->>A: GET /api/sync?since=0
+    A->>D: SELECT * WHERE modified_date > 0
+    D-->>A: All rows
+    A->>D: SELECT deleted since 0
+    D-->>A: Deleted IDs
+    A-->>C: SyncResponseDto (serverTime=T1)
+
+    Note over C: lastSyncTime = T1
+
+    Note over C: ... 30 seconds later ...
+
+    C->>A: GET /api/sync?since=T1
+    A->>D: SELECT * WHERE modified_date > T1
+    D-->>A: Only changed rows
+    A->>D: SELECT deleted since T1
+    D-->>A: Recently deleted IDs
+    A-->>C: SyncResponseDto (serverTime=T2)
+
+    Note over C: lastSyncTime = T2
+                    </pre>
+                </div>
+
+                <h3>How It Works</h3>
+                <ol>
+                    <li>Every entity has a <code>modified_date</code> column auto-updated by MySQL on each write.</li>
+                    <li>Each client stores a <code>lastSyncTime</code> (initialized to epoch zero on first run).</li>
+                    <li>On sync, the client calls <code>GET /api/sync?since={lastSyncTime}</code>.</li>
+                    <li>The server returns all entities modified since that time, plus deleted entity IDs.</li>
+                    <li>The client applies changes to its local display and updates <code>lastSyncTime</code> to <code>serverTime</code>.</li>
+                </ol>
+
+                <h3>Polling Intervals</h3>
+                <table>
+                    <tr><th>Client</th><th>Interval</th><th>Mechanism</th></tr>
+                    <tr><td>Windows</td><td>30 seconds</td><td><code>System.Windows.Forms.Timer</code></td></tr>
+                    <tr><td>Linux</td><td>30 seconds</td><td><code>GLib.Timeout.add_seconds</code></td></tr>
+                    <tr><td>Android (foreground)</td><td>On resume</td><td><code>onResume()</code></td></tr>
+                    <tr><td>Android (background)</td><td>15 minutes</td><td>WorkManager</td></tr>
+                </table>
+
+                <h3>Conflict Resolution</h3>
+                <p><strong>Last write wins.</strong> The server is always authoritative. If two clients edit the same task, the last PUT to reach the server wins.</p>
+
+                <h3>Deletion Tracking</h3>
+                <p>When the server deletes an entity, it inserts a row into <code>deleted_entity</code>. The sync endpoint queries this table. Old records are purged after 30 days.</p>
+            </section>
+
+            <!-- ─── WINDOWS ───────────────────────────────────── -->
+            <section id="windows">
+                <h2>Windows Client (WinForms + Krypton)</h2>
+                <p>A .NET 10 WinForms application using the Krypton Toolkit for a modern themed UI.</p>
+
+                <h3>UI Layout</h3>
+                <div class="diagram">
+                    <pre class="mermaid">
+graph TB
+    subgraph MainForm
+        TB["Toolbar: Add | Edit | Delete | Refresh"]
+        subgraph Split["Split Panel"]
+            LEFT["Left Panel<br/>KryptonTreeView<br/>(Lists)"]
+            RIGHT["Right Panel<br/>KryptonDataGridView<br/>(Tasks: checkbox, title, category, due date)"]
+        end
+        SB["Status Bar: Last Sync | Connection Status"]
+    end
+
+    TB --> Split
+    Split --> SB
+
+    style MainForm fill:#4a148c,stroke:#ce93d8,color:#fff
+    style LEFT fill:#0d47a1,stroke:#90caf9,color:#fff
+    style RIGHT fill:#0d47a1,stroke:#90caf9,color:#fff
+                    </pre>
+                </div>
+
+                <h3>Key Components</h3>
+                <table>
+                    <tr><th>File</th><th>Purpose</th></tr>
+                    <tr><td><code>Forms/MainForm.cs</code></td><td>Main window: list tree + task grid, toolbar, sync timer</td></tr>
+                    <tr><td><code>Forms/TaskEditForm.cs</code></td><td>Modal dialog for creating/editing tasks</td></tr>
+                    <tr><td><code>Forms/ListManagerForm.cs</code></td><td>Modal dialog for CRUD on lists</td></tr>
+                    <tr><td><code>Forms/CategoryManagerForm.cs</code></td><td>Modal dialog for CRUD on categories</td></tr>
+                    <tr><td><code>ApiClient/TodoApiClient.cs</code></td><td>HttpClient wrapper for all API calls</td></tr>
+                    <tr><td><code>Models/</code></td><td>POCOs mirroring the API DTOs</td></tr>
+                </table>
+
+                <h3>Project</h3>
+                <ul>
+                    <li>Solution: <code>clients/windows/ToDoList.Windows.sln</code></li>
+                    <li>NuGet: <code>Krypton.Toolkit</code></li>
+                    <li>Target: <code>net10.0-windows</code></li>
+                </ul>
+            </section>
+
+            <!-- ─── LINUX ─────────────────────────────────────── -->
+            <section id="linux">
+                <h2>Linux Client (Vala + GTK4)</h2>
+                <p>A native GNOME application using GTK4 and libadwaita for a modern Linux desktop experience.</p>
+
+                <h3>UI Layout</h3>
+                <div class="diagram">
+                    <pre class="mermaid">
+graph TB
+    subgraph MainWindow["Adw.ApplicationWindow"]
+        subgraph Split["Adw.NavigationSplitView"]
+            SB["Sidebar<br/>Gtk.ListView<br/>(Lists)"]
+            CT["Content<br/>Gtk.ListView<br/>(TaskRow widgets)"]
+        end
+        HB["Adw.HeaderBar: Add Task | Categories"]
+    end
+
+    style MainWindow fill:#1b5e20,stroke:#a5d6a7,color:#fff
+    style SB fill:#0d47a1,stroke:#90caf9,color:#fff
+    style CT fill:#0d47a1,stroke:#90caf9,color:#fff
+                    </pre>
+                </div>
+
+                <h3>Key Components</h3>
+                <table>
+                    <tr><th>File</th><th>Purpose</th></tr>
+                    <tr><td><code>src/Application.vala</code></td><td>Adw.Application subclass, entry point</td></tr>
+                    <tr><td><code>src/MainWindow.vala</code></td><td>Main window with split pane layout</td></tr>
+                    <tr><td><code>src/TaskRow.vala</code></td><td>Custom widget: checkbox + title + category + due date</td></tr>
+                    <tr><td><code>src/TaskEditDialog.vala</code></td><td>Dialog for creating/editing tasks</td></tr>
+                    <tr><td><code>src/ListSidebar.vala</code></td><td>Sidebar component with list management</td></tr>
+                    <tr><td><code>src/CategoryManagerDialog.vala</code></td><td>Category CRUD dialog</td></tr>
+                    <tr><td><code>src/ApiClient.vala</code></td><td>Soup.Session + json-glib HTTP client</td></tr>
+                    <tr><td><code>src/Models.vala</code></td><td>GObject model classes</td></tr>
+                </table>
+
+                <h3>Build</h3>
+<pre><code>cd clients/linux
+meson setup builddir
+cd builddir
+ninja
+./todo-list</code></pre>
+
+                <h3>Dependencies</h3>
+                <p><code>gtk4</code>, <code>libadwaita-1</code>, <code>libsoup-3.0</code>, <code>json-glib-1.0</code></p>
+            </section>
+
+            <!-- ─── ANDROID ───────────────────────────────────── -->
+            <section id="android">
+                <h2>Android Client (Kotlin)</h2>
+                <p>A native Android app using MVVM, Material Design 3, Retrofit for networking, and Jetpack Glance for interactive home screen widgets.</p>
+
+                <h3>Architecture</h3>
+                <div class="diagram">
+                    <pre class="mermaid">
+graph TB
+    subgraph UI["UI Layer"]
+        TLF["TaskListFragment"]
+        TEF["TaskEditFragment"]
+        LDF["ListDrawerFragment"]
+        CMF["CategoryManagerFragment"]
+        WDG["TodoListWidget<br/>(Glance)"]
+    end
+
+    subgraph Data["Data Layer"]
+        REPO["TodoRepository"]
+        API["TodoApiService<br/>(Retrofit)"]
+    end
+
+    TLF --> REPO
+    TEF --> REPO
+    LDF --> REPO
+    CMF --> REPO
+    WDG --> REPO
+    REPO --> API
+    API -->|"HTTP"| SERVER["REST API"]
+
+    style UI fill:#e65100,stroke:#ffcc80,color:#fff
+    style Data fill:#0d47a1,stroke:#90caf9,color:#fff
+                    </pre>
+                </div>
+
+                <h3>Home Screen Widget</h3>
+                <p>The Jetpack Glance widget displays tasks from a user-selected list directly on the home screen.</p>
+                <ul>
+                    <li><strong>Checkboxes</strong> &mdash; tap to toggle completion via API call</li>
+                    <li><strong>Task rows</strong> &mdash; tap to open the app to the edit screen</li>
+                    <li><strong>Add button</strong> &mdash; opens the app to create a new task</li>
+                    <li><strong>Auto-refresh</strong> &mdash; updated on every WorkManager sync cycle</li>
+                </ul>
+
+                <h3>Key Dependencies</h3>
+                <table>
+                    <tr><th>Library</th><th>Purpose</th></tr>
+                    <tr><td>Retrofit 2 + Gson</td><td>REST API client</td></tr>
+                    <tr><td>OkHttp 4</td><td>HTTP transport + logging</td></tr>
+                    <tr><td>Kotlin Coroutines</td><td>Async operations</td></tr>
+                    <tr><td>Jetpack Glance</td><td>Home screen widgets</td></tr>
+                    <tr><td>WorkManager</td><td>Background sync</td></tr>
+                    <tr><td>Navigation Component</td><td>Fragment navigation</td></tr>
+                    <tr><td>Material Design 3</td><td>UI components</td></tr>
+                </table>
+            </section>
+
+            <!-- ─── DEPLOYMENT ────────────────────────────────── -->
+            <section id="deployment">
+                <h2>Deployment</h2>
+
+                <h3>First-Time Server Setup</h3>
+<pre><code># On a fresh Ubuntu server:
+chmod +x scripts/provision-server.sh
+sudo ./scripts/provision-server.sh
+
+# Run the database schema:
+mysql -u todoapp -p todolist &lt; backend/src/ToDoList.Data/Schema/init.sql</code></pre>
+
+                <h3>Deploy API</h3>
+<pre><code># From your dev machine (Windows/WSL):
+./scripts/deploy.sh api</code></pre>
+
+                <p>This will:</p>
+                <ol>
+                    <li>Publish the API in Release mode</li>
+                    <li>Package as tar.gz</li>
+                    <li>SCP to the server</li>
+                    <li>Stop the systemd service</li>
+                    <li>Extract, preserving appsettings.Production.json</li>
+                    <li>Start the service and verify it's running</li>
+                </ol>
+
+                <h3>Check Status</h3>
+<pre><code>./scripts/deploy.sh status</code></pre>
+
+                <h3>Run SQL Migration</h3>
+<pre><code>./scripts/deploy.sh sql path/to/migration.sql</code></pre>
+
+                <h3>Server Details</h3>
+                <table>
+                    <tr><th>Property</th><th>Value</th></tr>
+                    <tr><td>IP</td><td><code>192.168.74.122</code></td></tr>
+                    <tr><td>Hostname</td><td><code>KevinLinuxLiteXfce</code></td></tr>
+                    <tr><td>User</td><td><code>kevin</code></td></tr>
+                    <tr><td>API Port</td><td><code>5000</code></td></tr>
+                    <tr><td>Install Path</td><td><code>/opt/todolist</code></td></tr>
+                    <tr><td>Service Name</td><td><code>todolist-api</code></td></tr>
+                </table>
+            </section>
+
+            <!-- ─── DATABASE ──────────────────────────────────── -->
+            <section id="database">
+                <h2>Database Setup</h2>
+
+                <h3>Connection String</h3>
+<pre><code>Server=localhost;Database=todolist;User=todoapp;Password=changeme;SslMode=None</code></pre>
+
+                <h3>Schema Script</h3>
+                <p>Located at: <code>backend/src/ToDoList.Data/Schema/init.sql</code></p>
+                <p>Creates:</p>
+                <ul>
+                    <li><code>todolist</code> database</li>
+                    <li><code>todoapp</code> MySQL user</li>
+                    <li><code>todo_list</code>, <code>category</code>, <code>todo_item</code>, <code>deleted_entity</code> tables</li>
+                    <li>Seed data: "My Tasks" default list</li>
+                </ul>
+
+                <div class="info-box warning">
+                    <strong>Important:</strong> Update the default password in <code>init.sql</code> and <code>appsettings.json</code> before deploying to production. Use <code>appsettings.Production.json</code> on the server for real credentials.
+                </div>
+
+                <h3>Maintenance</h3>
+                <p>The <code>deleted_entity</code> table grows over time. Purge old records periodically:</p>
+<pre><code>DELETE FROM deleted_entity WHERE deleted_date &lt; DATE_SUB(NOW(), INTERVAL 30 DAY);</code></pre>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Mermaid.js for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                background: '#0d1117',
+                primaryColor: '#0d47a1',
+                primaryTextColor: '#e0e0e0',
+                lineColor: '#53d8fb',
+                fontSize: '14px'
+            }
+        });
+
+        function showSection(id) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            // Show target
+            document.getElementById(id).classList.add('active');
+            // Update nav
+            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`a[href="#${id}"]`).classList.add('active');
+            // Render any mermaid diagrams in the newly shown section
+            renderMermaid();
+        }
+
+        async function renderMermaid() {
+            const active = document.querySelector('section.active');
+            if (!active) return;
+            const pres = active.querySelectorAll('pre.mermaid:not([data-processed])');
+            for (const pre of pres) {
+                const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+                try {
+                    const { svg } = await mermaid.render(id, pre.textContent.trim());
+                    const div = document.createElement('div');
+                    div.innerHTML = svg;
+                    pre.replaceWith(div);
+                } catch (e) {
+                    console.error('Mermaid render error:', e);
+                }
+            }
+        }
+
+        // Render initial section on load
+        document.addEventListener('DOMContentLoaded', renderMermaid);
+    </script>
+</body>
+</html>

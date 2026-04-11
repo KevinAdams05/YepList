@@ -1,0 +1,49 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.log
+*.vs/
+.vscode/
+*.DotSettings.user
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+publish/
+
+# NuGet
+*.nupkg
+**/packages/*
+project.lock.json
+project.fragment.lock.json
+
+# Meson (Linux client)
+builddir/
+subprojects/
+
+# Android
+.gradle/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+clients/android/.idea/
+clients/android/app/build/
+clients/android/build/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+*.swo
