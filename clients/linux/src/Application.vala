@@ -9,8 +9,62 @@ public class TodoApp : Adw.Application {
     }
 
     protected override void activate () {
+        apply_dark_mode_if_needed ();
         var win = new MainWindow (this);
         win.present ();
+    }
+
+    private void apply_dark_mode_if_needed () {
+        var style_manager = Adw.StyleManager.get_default ();
+
+        // On GNOME, the freedesktop color-scheme portal handles dark mode.
+        // On XFCE and other desktops without portal support, libadwaita
+        // overrides gtk_theme_name to "Adwaita-empty" so we can't rely on
+        // Gtk.Settings. Instead, query xfconf (XFCE) or GTK_THEME env var.
+        if (style_manager.system_supports_color_schemes) {
+            return;
+        }
+
+        bool want_dark = false;
+
+        // Check GTK_THEME environment variable
+        string? gtk_theme_env = Environment.get_variable ("GTK_THEME");
+        if (gtk_theme_env != null && gtk_theme_env.down ().contains ("dark")) {
+            want_dark = true;
+        }
+
+        // Query XFCE's xfconf for the real theme name via D-Bus
+        if (!want_dark) {
+            want_dark = xfconf_theme_is_dark ();
+        }
+
+        if (want_dark) {
+            style_manager.color_scheme = Adw.ColorScheme.FORCE_DARK;
+        }
+    }
+
+    private bool xfconf_theme_is_dark () {
+        try {
+            var connection = Bus.get_sync (BusType.SESSION);
+            var result = connection.call_sync (
+                "org.xfce.Xfconf",
+                "/org/xfce/Xfconf",
+                "org.xfce.Xfconf",
+                "GetProperty",
+                new Variant ("(ss)", "xsettings", "/Net/ThemeName"),
+                new VariantType ("(v)"),
+                DBusCallFlags.NONE,
+                1000);
+
+            Variant inner;
+            result.get ("(v)", out inner);
+            string theme_name = inner.get_string ();
+
+            return theme_name.down ().contains ("dark");
+        } catch (Error e) {
+            // xfconf not available (not XFCE), that's fine
+            return false;
+        }
     }
 
     public static int main (string[] args) {
