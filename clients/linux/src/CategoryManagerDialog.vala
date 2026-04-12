@@ -9,10 +9,10 @@ public class CategoryManagerDialog : Adw.AlertDialog {
     private Gtk.Entry color_entry;
 
     public CategoryManagerDialog (ApiClient api_client, GenericArray<Category> categories) {
+        Object (heading: "Manage Categories");
+
         this.api_client = api_client;
         this.categories = categories;
-
-        Object (heading: "Manage Categories");
 
         add_response ("close", "Close");
         default_response = "close";
@@ -33,6 +33,7 @@ public class CategoryManagerDialog : Adw.AlertDialog {
 
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((item) => {
+            var list_item = (Gtk.ListItem) item;
             var row_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
             row_box.margin_start = 8;
             row_box.margin_end = 8;
@@ -48,11 +49,12 @@ public class CategoryManagerDialog : Adw.AlertDialog {
             color_label.halign = Gtk.Align.END;
             row_box.append (color_label);
 
-            item.child = row_box;
+            list_item.child = row_box;
         });
         factory.bind.connect ((item) => {
-            var row_box = (Gtk.Box) item.child;
-            var cat = (Category) item.item;
+            var list_item = (Gtk.ListItem) item;
+            var row_box = (Gtk.Box) list_item.child;
+            var cat = (Category) list_item.item;
 
             var name_label = (Gtk.Label) row_box.get_first_child ();
             name_label.label = cat.name;

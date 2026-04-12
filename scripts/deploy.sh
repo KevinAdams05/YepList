@@ -2,15 +2,18 @@
 set -euo pipefail
 
 # ToDoList Deploy Script
-# Usage: ./deploy.sh api|sql <file>|status
+# Usage: ./deploy.sh api|linux|sql <file>|status
 
 # ── Server Config ──────────────────────────────────────────────
-API_HOST="192.168.74.122"
-API_USER="kevin"
+HOST="192.168.74.122"
+USER="kevin"
 API_PATH="/opt/todolist"
 API_SERVICE="todolist-api"
 
-SRC_DIR="$(cd "$(dirname "$0")/../backend" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SRC_DIR="$SCRIPT_DIR/../backend"
+LINUX_SRC_DIR="$SCRIPT_DIR/../clients/linux"
+LINUX_REMOTE_DIR="/home/$USER/todolist-linux"
 PUBLISH_DIR="/tmp/todolist-publish"
 
 # ── Colors ─────────────────────────────────────────────────────
@@ -46,12 +49,12 @@ deploy_api() {
     tar -czf "$tarball" -C "$PUBLISH_DIR" .
     ok "Created $tarball ($(du -h "$tarball" | cut -f1))"
 
-    log "3/4 Uploading to ${API_USER}@${API_HOST}..."
-    scp -q "$tarball" "${API_USER}@${API_HOST}:/tmp/todolist-api.tar.gz"
-    ok "Uploaded to $API_HOST"
+    log "3/4 Uploading to ${USER}@${HOST}..."
+    scp -q "$tarball" "${USER}@${HOST}:/tmp/todolist-api.tar.gz"
+    ok "Uploaded to $HOST"
 
-    log "4/4 Deploying on $API_HOST..."
-    ssh "${API_USER}@${API_HOST}" bash -s <<EOF
+    log "4/4 Deploying on $HOST..."
+    ssh "${USER}@${HOST}" bash -s <<EOF
         set -e
         sudo systemctl stop $API_SERVICE 2>/dev/null || true
 
@@ -80,8 +83,43 @@ deploy_api() {
             exit 1
         fi
 EOF
-    ok "API deployed and running on $API_HOST"
+    ok "API deployed and running on $HOST"
     rm -f "$tarball"
+}
+
+deploy_linux() {
+    if [ ! -d "$LINUX_SRC_DIR/src" ]; then
+        err "Linux client source not found at $LINUX_SRC_DIR/src"
+    fi
+
+    log "1/3 Syncing source to ${USER}@${HOST}:${LINUX_REMOTE_DIR}..."
+    ssh "${USER}@${HOST}" "mkdir -p $LINUX_REMOTE_DIR"
+    scp -q "$LINUX_SRC_DIR/meson.build" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
+    scp -qr "$LINUX_SRC_DIR/src" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
+    ok "Source uploaded"
+
+    log "2/3 Building on $HOST..."
+    ssh "${USER}@${HOST}" bash -s <<EOF
+        set -e
+        cd $LINUX_REMOTE_DIR
+
+        if [ ! -d builddir ]; then
+            meson setup builddir
+        fi
+
+        ninja -C builddir
+EOF
+    ok "Build succeeded"
+
+    log "3/3 Installing..."
+    ssh "${USER}@${HOST}" bash -s <<EOF
+        set -e
+        cd $LINUX_REMOTE_DIR
+        sudo ninja -C builddir install
+EOF
+    ok "Installed to /usr/local/bin/todo-list on $HOST"
+    echo ""
+    log "Run with: todo-list --server http://localhost:5000"
 }
 
 deploy_sql() {
@@ -89,15 +127,15 @@ deploy_sql() {
     if [ ! -f "$sqlfile" ]; then
         err "SQL file not found: $sqlfile"
     fi
-    log "Running $sqlfile on $API_HOST..."
-    ssh "${API_USER}@${API_HOST}" "mysql -u todoapp -p todolist" < "$sqlfile"
+    log "Running $sqlfile on $HOST..."
+    ssh "${USER}@${HOST}" "mysql -u todoapp -p todolist" < "$sqlfile"
     ok "SQL script applied: $(basename "$sqlfile")"
 }
 
 check_status() {
-    log "Checking $API_SERVICE on $API_HOST..."
+    log "Checking $API_SERVICE on $HOST..."
     echo ""
-    ssh "${API_USER}@${API_HOST}" bash -s <<EOF
+    ssh "${USER}@${HOST}" bash -s <<EOF
         if systemctl is-active --quiet $API_SERVICE; then
             echo "  ✓ $API_SERVICE is running"
         else
@@ -112,9 +150,10 @@ EOF
 # ── Main ───────────────────────────────────────────────────────
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 api|sql <file>|status"
+    echo "Usage: $0 api|linux|sql <file>|status"
     echo ""
-    echo "  api       Publish and deploy API to $API_HOST"
+    echo "  api       Publish and deploy API to $HOST"
+    echo "  linux     Build and install Linux client on $HOST"
     echo "  sql <f>   Run a SQL script on the server's MySQL"
     echo "  status    Check service status and recent logs"
     exit 1
@@ -124,6 +163,9 @@ case "$1" in
     api)
         deploy_api
         ;;
+    linux)
+        deploy_linux
+        ;;
     sql)
         [ $# -lt 2 ] && err "Usage: $0 sql <file.sql>"
         deploy_sql "$2"
@@ -132,7 +174,7 @@ case "$1" in
         check_status
         ;;
     *)
-        err "Unknown command: $1. Use api|sql|status"
+        err "Unknown command: $1. Use api|linux|sql|status"
         ;;
 esac
 

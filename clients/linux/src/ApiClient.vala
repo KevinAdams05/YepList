@@ -174,7 +174,7 @@ public class ApiClient : Object {
     public async SyncResponse sync_async () throws Error {
         var path = "api/sync";
         if (last_sync_time != "") {
-            path += "?since=" + Soup.URI.encode (last_sync_time, null);
+            path += "?since=" + GLib.Uri.escape_string (last_sync_time, null, true);
         }
 
         var body = yield get_async (path);

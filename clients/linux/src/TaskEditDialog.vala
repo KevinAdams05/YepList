@@ -8,11 +8,11 @@ public class TaskEditDialog : Adw.AlertDialog {
     private GenericArray<Category> categories;
 
     public string task_title {
-        get { return title_entry.text.strip (); }
+        owned get { return title_entry.text.strip (); }
     }
 
     public string? task_notes {
-        get {
+        owned get {
             var text = notes_view.buffer.text.strip ();
             return text == "" ? null : text;
         }
@@ -36,7 +36,7 @@ public class TaskEditDialog : Adw.AlertDialog {
     }
 
     public string? task_due_date {
-        get {
+        owned get {
             if (!due_date_check.active) {
                 return null;
             }
@@ -46,10 +46,10 @@ public class TaskEditDialog : Adw.AlertDialog {
     }
 
     public TaskEditDialog (TodoItem? existing, GenericArray<Category> categories) {
-        this.categories = categories;
-
         string dialog_title = existing != null ? "Edit Task" : "New Task";
         Object (heading: dialog_title);
+
+        this.categories = categories;
 
         add_response ("cancel", "Cancel");
         add_response ("save", "Save");

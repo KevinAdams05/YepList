@@ -42,8 +42,7 @@ public class MainWindow : Adw.ApplicationWindow {
         list_sidebar.list_selected.connect (on_list_selected);
         list_sidebar.new_list_requested.connect (on_new_list_requested);
 
-        var sidebar_page = new Adw.NavigationPage.with_tag ("sidebar", "Lists");
-        sidebar_page.child = list_sidebar;
+        var sidebar_page = new Adw.NavigationPage.with_tag (list_sidebar, "Lists", "sidebar");
         split_view.sidebar = sidebar_page;
 
         // ── Content ─────────────────────────────────
@@ -76,12 +75,14 @@ public class MainWindow : Adw.ApplicationWindow {
 
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((item) => {
+            var list_item = (Gtk.ListItem) item;
             var row = new TaskRow ();
-            item.child = row;
+            list_item.child = row;
         });
         factory.bind.connect ((item) => {
-            var row = (TaskRow) item.child;
-            var todo_item = (TodoItem) item.item;
+            var list_item = (Gtk.ListItem) item;
+            var row = (TaskRow) list_item.child;
+            var todo_item = (TodoItem) list_item.item;
             row.bind_item (todo_item, categories);
             row.completion_toggled.connect ((toggled_item) => {
                 toggle_complete.begin (toggled_item);
@@ -107,8 +108,7 @@ public class MainWindow : Adw.ApplicationWindow {
         status_label.add_css_class ("dim-label");
         content_box.append (status_label);
 
-        var content_page = new Adw.NavigationPage.with_tag ("content", "Tasks");
-        content_page.child = content_box;
+        var content_page = new Adw.NavigationPage.with_tag (content_box, "Tasks", "content");
         split_view.content = content_page;
 
         this.content = split_view;
@@ -144,9 +144,23 @@ public class MainWindow : Adw.ApplicationWindow {
             categories = yield api_client.get_categories_async ();
             list_sidebar.update_lists (lists);
 
+            // Auto-select first list if none selected
+            if (selected_list_id < 0 && lists.length > 0) {
+                selected_list_id = lists[0].list_id;
+                list_sidebar.select_index (0);
+            }
+
             if (selected_list_id > 0) {
                 current_items = yield api_client.get_items_by_list_async (selected_list_id);
                 refresh_task_list ();
+
+                // Update header title
+                for (uint i = 0; i < lists.length; i++) {
+                    if (lists[i].list_id == selected_list_id) {
+                        ((Adw.WindowTitle) content_header.title_widget).title = lists[i].name;
+                        break;
+                    }
+                }
             }
 
             update_status ("Connected");

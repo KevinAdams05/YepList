@@ -29,17 +29,19 @@ public class ListSidebar : Gtk.Box {
         // Factory
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((item) => {
+            var list_item = (Gtk.ListItem) item;
             var label = new Gtk.Label ("");
             label.halign = Gtk.Align.START;
             label.margin_start = 12;
             label.margin_end = 12;
             label.margin_top = 8;
             label.margin_bottom = 8;
-            item.child = label;
+            list_item.child = label;
         });
         factory.bind.connect ((item) => {
-            var label = (Gtk.Label) item.child;
-            var todo_list = (TodoList) item.item;
+            var list_item = (Gtk.ListItem) item;
+            var label = (Gtk.Label) list_item.child;
+            var todo_list = (TodoList) list_item.item;
             label.label = todo_list.name;
         });
 
@@ -76,6 +78,12 @@ public class ListSidebar : Gtk.Box {
         list_store.remove_all ();
         for (uint i = 0; i < lists.length; i++) {
             list_store.append (lists[i]);
+        }
+    }
+
+    public void select_index (uint index) {
+        if (index < list_store.get_n_items ()) {
+            selection.selected = index;
         }
     }
 }
