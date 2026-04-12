@@ -1,16 +1,16 @@
--- ToDoList Database Schema
+-- YepList Database Schema
 -- MySQL 8.0+
 -- Run: mysql -u root -p < init.sql
 
-CREATE DATABASE IF NOT EXISTS todolist
+CREATE DATABASE IF NOT EXISTS yeplist
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE todolist;
+USE yeplist;
 
 -- Create application user
-CREATE USER IF NOT EXISTS 'todoapp'@'%' IDENTIFIED BY 'changeme';
-GRANT ALL PRIVILEGES ON todolist.* TO 'todoapp'@'%';
+CREATE USER IF NOT EXISTS 'yepapp'@'%' IDENTIFIED BY 'changeme';
+GRANT ALL PRIVILEGES ON yeplist.* TO 'yepapp'@'%';
 FLUSH PRIVILEGES;
 
 -- -----------------------------------------------------------

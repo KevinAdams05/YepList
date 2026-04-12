@@ -20,7 +20,7 @@ public class MainWindow : Adw.ApplicationWindow {
     public MainWindow (Gtk.Application app) {
         Object (
             application: app,
-            title: "ToDoList",
+            title: "YepList",
             default_width: 900,
             default_height: 600
         );

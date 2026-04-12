@@ -1,4 +1,4 @@
-project('todo-list', 'vala', 'c',
+project('yep-list', 'vala', 'c',
   version: '1.0.0',
   meson_version: '>= 0.62.0',
 )
@@ -26,7 +26,13 @@ sources = files(
   'src/CategoryManagerDialog.vala',
 )
 
-executable('todo-list', sources,
+executable('yep-list', sources,
   dependencies: dependencies,
   install: true,
+)
+
+# Install icon
+install_data('data/yeplist.png',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / '256x256' / 'apps',
+  rename: 'com.github.kevinadams05.yeplist.png',
 )

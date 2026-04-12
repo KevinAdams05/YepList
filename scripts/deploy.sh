@@ -1,20 +1,20 @@
 #!/bin/bash
 set -euo pipefail
 
-# ToDoList Deploy Script
+# YepList Deploy Script
 # Usage: ./deploy.sh api|linux|sql <file>|status
 
 # ── Server Config ──────────────────────────────────────────────
 HOST="192.168.74.122"
 USER="kevin"
-API_PATH="/opt/todolist"
-API_SERVICE="todolist-api"
+API_PATH="/opt/yeplist"
+API_SERVICE="yeplist-api"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_DIR="$SCRIPT_DIR/../backend"
 LINUX_SRC_DIR="$SCRIPT_DIR/../clients/linux"
-LINUX_REMOTE_DIR="/home/$USER/todolist-linux"
-PUBLISH_DIR="/tmp/todolist-publish"
+LINUX_REMOTE_DIR="/home/$USER/yeplist-linux"
+PUBLISH_DIR="/tmp/yeplist-publish"
 
 # ── Colors ─────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -31,26 +31,26 @@ err()  { echo -e "${RED}[error ]${NC} $1"; exit 1; }
 # ── Functions ──────────────────────────────────────────────────
 
 publish_api() {
-    log "1/4 Publishing ToDoList.Api..."
+    log "1/4 Publishing YepList.Api..."
     rm -rf "$PUBLISH_DIR"
     dotnet publish "$SRC_DIR/src/ToDoList.Api/ToDoList.Api.csproj" \
         -c Release \
         -o "$PUBLISH_DIR" \
         --nologo \
         -v quiet
-    ok "Published ToDoList.Api → $PUBLISH_DIR"
+    ok "Published YepList.Api → $PUBLISH_DIR"
 }
 
 deploy_api() {
     publish_api
 
     log "2/4 Packaging..."
-    local tarball="/tmp/todolist-api.tar.gz"
+    local tarball="/tmp/yeplist-api.tar.gz"
     tar -czf "$tarball" -C "$PUBLISH_DIR" .
     ok "Created $tarball ($(du -h "$tarball" | cut -f1))"
 
     log "3/4 Uploading to ${USER}@${HOST}..."
-    scp -q "$tarball" "${USER}@${HOST}:/tmp/todolist-api.tar.gz"
+    scp -q "$tarball" "${USER}@${HOST}:/tmp/yeplist-api.tar.gz"
     ok "Uploaded to $HOST"
 
     log "4/4 Deploying on $HOST..."
@@ -65,7 +65,7 @@ deploy_api() {
 
         sudo mkdir -p $API_PATH
         sudo rm -rf $API_PATH/*
-        sudo tar -xzf /tmp/todolist-api.tar.gz -C $API_PATH
+        sudo tar -xzf /tmp/yeplist-api.tar.gz -C $API_PATH
         sudo chown -R www-data:www-data $API_PATH 2>/dev/null || true
 
         # Restore config
@@ -96,6 +96,9 @@ deploy_linux() {
     ssh "${USER}@${HOST}" "mkdir -p $LINUX_REMOTE_DIR"
     scp -q "$LINUX_SRC_DIR/meson.build" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
     scp -qr "$LINUX_SRC_DIR/src" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
+    if [ -d "$LINUX_SRC_DIR/data" ]; then
+        scp -qr "$LINUX_SRC_DIR/data" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
+    fi
     ok "Source uploaded"
 
     log "2/3 Building on $HOST..."
@@ -117,9 +120,9 @@ EOF
         cd $LINUX_REMOTE_DIR
         sudo ninja -C builddir install
 EOF
-    ok "Installed to /usr/local/bin/todo-list on $HOST"
+    ok "Installed to /usr/local/bin/yep-list on $HOST"
     echo ""
-    log "Run with: todo-list --server http://localhost:5000"
+    log "Run with: yep-list --server http://localhost:5000"
 }
 
 deploy_sql() {
@@ -128,7 +131,7 @@ deploy_sql() {
         err "SQL file not found: $sqlfile"
     fi
     log "Running $sqlfile on $HOST..."
-    ssh "${USER}@${HOST}" "mysql -u todoapp -p todolist" < "$sqlfile"
+    ssh "${USER}@${HOST}" "mysql -u yepapp -p yeplist" < "$sqlfile"
     ok "SQL script applied: $(basename "$sqlfile")"
 }
 

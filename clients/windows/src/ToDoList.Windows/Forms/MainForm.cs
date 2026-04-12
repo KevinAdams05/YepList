@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -42,10 +43,16 @@ namespace ToDoList.Windows.Forms
 
         private void InitializeComponents()
         {
-            Text = "ToDoList";
+            Text = "YepList";
             Size = new Size(1100, 700);
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(800, 500);
+
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+            if (File.Exists(iconPath))
+            {
+                Icon = new Icon(iconPath);
+            }
 
             // ── Toolbar ─────────────────────────────────────
             KryptonPanel toolPanel = new KryptonPanel { Dock = DockStyle.Top, Height = 45 };

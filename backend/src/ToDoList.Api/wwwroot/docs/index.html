@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToDoList - Documentation</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <title>YepList - Documentation</title>
     <style>
         :root {
             --bg: #1a1a2e;
@@ -229,7 +230,7 @@
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <h1>ToDoList Docs</h1>
+            <h1><img src="images/logo-dark.png" alt="YepList" style="height: 32px; vertical-align: middle; margin-right: 8px;">Docs</h1>
             <nav>
                 <div class="section-title">Overview</div>
                 <a href="#overview" class="active" onclick="showSection('overview')">Architecture</a>
@@ -243,6 +244,7 @@
                 <div class="section-title">Clients</div>
                 <a href="#windows" onclick="showSection('windows')">Windows (WinForms)</a>
                 <a href="#linux" onclick="showSection('linux')">Linux (Vala/GTK4)</a>
+                <a href="#linux-theming" onclick="showSection('linux')">  Theming (XFCE)</a>
                 <a href="#android" onclick="showSection('android')">Android (Kotlin)</a>
 
                 <div class="section-title">Operations</div>
@@ -256,7 +258,7 @@
             <!-- ─── OVERVIEW ──────────────────────────────────── -->
             <section id="overview" class="active">
                 <h2>Architecture Overview</h2>
-                <p>ToDoList is a cross-platform task management application with a shared REST API backend and three native clients.</p>
+                <p>YepList is a cross-platform task management application with a shared REST API backend and three native clients.</p>
 
                 <div class="diagram">
                     <pre class="mermaid">
@@ -269,7 +271,7 @@ graph TB
 
     subgraph Server ["Linux Server (Ubuntu)"]
         API["ASP.NET Core<br/>REST API<br/>Port 5000"]
-        DB[("MySQL 8.0<br/>todolist DB")]
+        DB[("MySQL 8.0<br/>yeplist DB")]
     end
 
     W -->|"HTTP REST"| API
@@ -631,10 +633,22 @@ graph TB
 meson setup builddir
 cd builddir
 ninja
-./todo-list</code></pre>
+./yep-list</code></pre>
 
                 <h3>Dependencies</h3>
                 <p><code>gtk4</code>, <code>libadwaita-1</code>, <code>libsoup-3.0</code>, <code>json-glib-1.0</code></p>
+
+                <h3>Dark Mode / Theming</h3>
+                <p>The Linux client uses libadwaita, which manages its own stylesheet independently of the system GTK theme.</p>
+                <ul>
+                    <li><strong>GNOME:</strong> libadwaita reads the color scheme from the freedesktop portal (<code>org.freedesktop.appearance</code>). Dark mode works automatically.</li>
+                    <li><strong>XFCE / Other desktops:</strong> The freedesktop portal is not available, and libadwaita overrides <code>gtk_theme_name</code> to <code>Adwaita-empty</code>, making <code>Gtk.Settings</code> unreliable for theme detection.</li>
+                </ul>
+                <p>To support XFCE, the app queries xfconf directly via D-Bus (<code>org.xfce.Xfconf.GetProperty</code> for <code>/Net/ThemeName</code>) to get the real GTK theme name. If it contains "dark", <code>Adw.ColorScheme.FORCE_DARK</code> is applied.</p>
+                <div class="info-box">
+                    <strong>Key insight:</strong> <code>Adw.ColorScheme.PREFER_DARK</code> only works when the portal is available. On desktops without portal support, use <code>FORCE_DARK</code> instead.
+                </div>
+                <p>The <code>GTK_THEME</code> environment variable is also checked as a fallback (e.g. <code>GTK_THEME=Adwaita:dark</code>).</p>
             </section>
 
             <!-- ─── ANDROID ───────────────────────────────────── -->
@@ -704,11 +718,15 @@ chmod +x scripts/provision-server.sh
 sudo ./scripts/provision-server.sh
 
 # Run the database schema:
-mysql -u todoapp -p todolist &lt; backend/src/ToDoList.Data/Schema/init.sql</code></pre>
+mysql -u yepapp -p yeplist &lt; backend/src/ToDoList.Data/Schema/init.sql</code></pre>
 
                 <h3>Deploy API</h3>
 <pre><code># From your dev machine (Windows/WSL):
 ./scripts/deploy.sh api</code></pre>
+
+                <h3>Deploy Linux Client</h3>
+<pre><code>./scripts/deploy.sh linux</code></pre>
+                <p>This will sync source to the dev server, build with meson/ninja, and install to <code>/usr/local/bin/yep-list</code>.</p>
 
                 <p>This will:</p>
                 <ol>
@@ -733,8 +751,8 @@ mysql -u todoapp -p todolist &lt; backend/src/ToDoList.Data/Schema/init.sql</cod
                     <tr><td>Hostname</td><td><code>KevinLinuxLiteXfce</code></td></tr>
                     <tr><td>User</td><td><code>kevin</code></td></tr>
                     <tr><td>API Port</td><td><code>5000</code></td></tr>
-                    <tr><td>Install Path</td><td><code>/opt/todolist</code></td></tr>
-                    <tr><td>Service Name</td><td><code>todolist-api</code></td></tr>
+                    <tr><td>Install Path</td><td><code>/opt/yeplist</code></td></tr>
+                    <tr><td>Service Name</td><td><code>yeplist-api</code></td></tr>
                 </table>
             </section>
 
@@ -743,14 +761,14 @@ mysql -u todoapp -p todolist &lt; backend/src/ToDoList.Data/Schema/init.sql</cod
                 <h2>Database Setup</h2>
 
                 <h3>Connection String</h3>
-<pre><code>Server=localhost;Database=todolist;User=todoapp;Password=changeme;SslMode=None</code></pre>
+<pre><code>Server=localhost;Database=yeplist;User=yepapp;Password=changeme;SslMode=None</code></pre>
 
                 <h3>Schema Script</h3>
                 <p>Located at: <code>backend/src/ToDoList.Data/Schema/init.sql</code></p>
                 <p>Creates:</p>
                 <ul>
-                    <li><code>todolist</code> database</li>
-                    <li><code>todoapp</code> MySQL user</li>
+                    <li><code>yeplist</code> database</li>
+                    <li><code>yepapp</code> MySQL user</li>
                     <li><code>todo_list</code>, <code>category</code>, <code>todo_item</code>, <code>deleted_entity</code> tables</li>
                     <li>Seed data: "My Tasks" default list</li>
                 </ul>

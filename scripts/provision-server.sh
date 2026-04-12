@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # ============================================================================
-# ToDoList — Server Provisioning Script
+# YepList — Server Provisioning Script
 # ============================================================================
 # Run this script as a user with sudo privileges on a fresh Ubuntu/Mint
-# installation to prepare it as the ToDoList API + MySQL server.
+# installation to prepare it as the YepList API + MySQL server.
 #
 # Usage:
 #   chmod +x provision-server.sh
@@ -14,7 +14,7 @@ set -euo pipefail
 # What this script does:
 #   1. Installs .NET 10 runtime
 #   2. Installs and configures MySQL 8.0
-#   3. Creates the todolist database and todoapp MySQL user
+#   3. Creates the yeplist database and yepapp MySQL user
 #   4. Runs the schema init script
 #   5. Creates the systemd service for the API
 #   6. Opens firewall ports (SSH 22, API 5000, MySQL 3306)
@@ -22,14 +22,14 @@ set -euo pipefail
 # ============================================================================
 
 # ── Configuration ──────────────────────────────────────────────
-API_PATH="/opt/todolist"
-API_SERVICE="todolist-api"
-MYSQL_DB="todolist"
-MYSQL_USER="todoapp"
+API_PATH="/opt/yeplist"
+API_SERVICE="yeplist-api"
+MYSQL_DB="yeplist"
+MYSQL_USER="yepapp"
 
 # ── Prompt for passwords ──────────────────────────────────────
 echo "============================================"
-echo " ToDoList — Server Provisioning"
+echo " YepList — Server Provisioning"
 echo "============================================"
 echo ""
 
@@ -125,7 +125,7 @@ echo "[6/7] Creating systemd service..."
 
 cat > /etc/systemd/system/$API_SERVICE.service <<EOF
 [Unit]
-Description=ToDoList REST API
+Description=YepList REST API
 After=network.target mysql.service
 
 [Service]
@@ -134,7 +134,7 @@ WorkingDirectory=$API_PATH
 ExecStart=$API_PATH/ToDoList.Api
 Restart=always
 RestartSec=5
-SyslogIdentifier=todolist-api
+SyslogIdentifier=yeplist-api
 User=www-data
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_ENVIRONMENT=Production
@@ -155,7 +155,7 @@ if ! command -v ufw &>/dev/null; then
 fi
 
 ufw allow 22/tcp comment "SSH"         > /dev/null
-ufw allow 5000/tcp comment "ToDoList API" > /dev/null
+ufw allow 5000/tcp comment "YepList API" > /dev/null
 ufw allow 3306/tcp comment "MySQL"     > /dev/null
 
 if ! ufw status | grep -q "Status: active"; then

@@ -3,13 +3,19 @@ public class TodoApp : Adw.Application {
 
     public TodoApp () {
         Object (
-            application_id: "com.github.kevinadams05.todolist",
+            application_id: "com.github.kevinadams05.yeplist",
             flags: ApplicationFlags.FLAGS_NONE
         );
     }
 
     protected override void activate () {
         apply_dark_mode_if_needed ();
+
+        // Set window icon for non-GNOME desktops
+        Gtk.IconTheme.get_for_display (Gdk.Display.get_default ()).add_search_path (
+            "/usr/local/share/icons/hicolor/256x256/apps");
+        Gtk.Window.set_default_icon_name ("com.github.kevinadams05.yeplist");
+
         var win = new MainWindow (this);
         win.present ();
     }
