@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using ToDoList.Core.Interfaces;
@@ -18,8 +19,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<TodoList>> GetAllAsync()
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<TodoList>(
                 "SELECT list_id AS ListId, name AS Name, sort_order AS SortOrder, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +
@@ -28,8 +30,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<TodoList?> GetByIdAsync(long listId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QuerySingleOrDefaultAsync<TodoList>(
                 "SELECT list_id AS ListId, name AS Name, sort_order AS SortOrder, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +
@@ -39,9 +42,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<TodoList> InsertAsync(string name, int sortOrder)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var id = await conn.ExecuteScalarAsync<long>(
+            long id = await conn.ExecuteScalarAsync<long>(
                 "INSERT INTO todo_list (name, sort_order) VALUES (@Name, @SortOrder); " +
                 "SELECT LAST_INSERT_ID();",
                 new { Name = name, SortOrder = sortOrder });
@@ -51,9 +54,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<TodoList?> UpdateAsync(long listId, string name, int sortOrder)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "UPDATE todo_list SET name = @Name, sort_order = @SortOrder " +
                 "WHERE list_id = @ListId",
                 new { ListId = listId, Name = name, SortOrder = sortOrder });
@@ -68,10 +71,10 @@ namespace ToDoList.Data.Repositories
 
         public async Task<bool> DeleteAsync(long listId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
 
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "DELETE FROM todo_list WHERE list_id = @ListId",
                 new { ListId = listId });
 
@@ -87,8 +90,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<TodoList>> GetModifiedSinceAsync(DateTime since)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<TodoList>(
                 "SELECT list_id AS ListId, name AS Name, sort_order AS SortOrder, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +

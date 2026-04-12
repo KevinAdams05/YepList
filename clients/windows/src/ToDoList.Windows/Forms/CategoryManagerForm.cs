@@ -57,13 +57,13 @@ namespace ToDoList.Windows.Forms
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
 
-            var colName = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Name", FillWeight = 60 };
-            var colColor = new DataGridViewTextBoxColumn { Name = "Color", HeaderText = "Color", FillWeight = 40 };
+            DataGridViewTextBoxColumn colName = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Name", FillWeight = 60 };
+            DataGridViewTextBoxColumn colColor = new DataGridViewTextBoxColumn { Name = "Color", HeaderText = "Color", FillWeight = 40 };
             gridCategories.Columns.AddRange(new DataGridViewColumn[] { colName, colColor });
 
             gridCategories.SelectionChanged += (s, e) =>
             {
-                var cat = GetSelectedCategory();
+                Category? cat = GetSelectedCategory();
                 if (cat != null)
                 {
                     txtName.Text = cat.Name;
@@ -73,10 +73,10 @@ namespace ToDoList.Windows.Forms
             };
 
             // Input fields
-            var lblName = new KryptonLabel { Text = "Name:", Location = new Point(12, 248), AutoSize = true };
+            KryptonLabel lblName = new KryptonLabel { Text = "Name:", Location = new Point(12, 248), AutoSize = true };
             txtName = new KryptonTextBox { Location = new Point(80, 246), Width = 302 };
 
-            var lblColor = new KryptonLabel { Text = "Color:", Location = new Point(12, 282), AutoSize = true };
+            KryptonLabel lblColor = new KryptonLabel { Text = "Color:", Location = new Point(12, 282), AutoSize = true };
             txtColor = new KryptonTextBox { Location = new Point(80, 280), Width = 180 };
             txtColor.TextChanged += (s, e) => UpdateColorPreview();
 
@@ -90,7 +90,7 @@ namespace ToDoList.Windows.Forms
             btnPickColor = new KryptonButton { Text = "...", Location = new Point(302, 280), Width = 32 };
             btnPickColor.Click += (s, e) =>
             {
-                using var dlg = new ColorDialog();
+                using ColorDialog dlg = new ColorDialog();
                 if (!string.IsNullOrEmpty(txtColor.Text))
                 {
                     try
@@ -131,16 +131,16 @@ namespace ToDoList.Windows.Forms
         private void RefreshGrid()
         {
             gridCategories.Rows.Clear();
-            foreach (var cat in categories.OrderBy(c => c.Name))
+            foreach (Category cat in categories.OrderBy(c => c.Name))
             {
-                var rowIndex = gridCategories.Rows.Add(cat.Name, cat.Color ?? "");
+                int rowIndex = gridCategories.Rows.Add(cat.Name, cat.Color ?? "");
                 gridCategories.Rows[rowIndex].Tag = cat;
 
                 if (cat.Color != null)
                 {
                     try
                     {
-                        var color = ColorTranslator.FromHtml(cat.Color);
+                        Color color = ColorTranslator.FromHtml(cat.Color);
                         gridCategories.Rows[rowIndex].Cells["Color"].Style.ForeColor = color;
                         gridCategories.Rows[rowIndex].Cells["Color"].Style.Font = new Font(gridCategories.Font, FontStyle.Bold);
                     }
@@ -170,22 +170,23 @@ namespace ToDoList.Windows.Forms
             {
                 return null;
             }
+
             return gridCategories.SelectedRows[0].Tag as Category;
         }
 
         private async Task AddCategoryAsync()
         {
-            var name = txtName.Text.Trim();
+            string name = txtName.Text.Trim();
             if (string.IsNullOrEmpty(name))
             {
                 return;
             }
 
-            var color = string.IsNullOrWhiteSpace(txtColor.Text) ? null : txtColor.Text.Trim();
+            string? color = string.IsNullOrWhiteSpace(txtColor.Text) ? null : txtColor.Text.Trim();
 
             try
             {
-                var newCat = await apiClient.CreateCategoryAsync(name, color);
+                Category newCat = await apiClient.CreateCategoryAsync(name, color);
                 categories.Add(newCat);
                 RefreshGrid();
                 txtName.Clear();
@@ -200,23 +201,23 @@ namespace ToDoList.Windows.Forms
 
         private async Task UpdateCategoryAsync()
         {
-            var selected = GetSelectedCategory();
+            Category? selected = GetSelectedCategory();
             if (selected == null)
             {
                 return;
             }
 
-            var name = txtName.Text.Trim();
+            string name = txtName.Text.Trim();
             if (string.IsNullOrEmpty(name))
             {
                 return;
             }
 
-            var color = string.IsNullOrWhiteSpace(txtColor.Text) ? null : txtColor.Text.Trim();
+            string? color = string.IsNullOrWhiteSpace(txtColor.Text) ? null : txtColor.Text.Trim();
 
             try
             {
-                var updated = await apiClient.UpdateCategoryAsync(selected.CategoryId, name, color);
+                Category updated = await apiClient.UpdateCategoryAsync(selected.CategoryId, name, color);
                 selected.Name = updated.Name;
                 selected.Color = updated.Color;
                 RefreshGrid();
@@ -230,13 +231,13 @@ namespace ToDoList.Windows.Forms
 
         private async Task DeleteCategoryAsync()
         {
-            var selected = GetSelectedCategory();
+            Category? selected = GetSelectedCategory();
             if (selected == null)
             {
                 return;
             }
 
-            var result = KryptonMessageBox.Show(this,
+            DialogResult result = KryptonMessageBox.Show(this,
                 $"Delete category \"{selected.Name}\"? Tasks using this category will become uncategorized.",
                 "Confirm Delete",
                 KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);

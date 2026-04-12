@@ -28,17 +28,17 @@ namespace ToDoList.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Sync([FromQuery] DateTime? since)
         {
-            var sinceDate = since ?? DateTime.MinValue;
+            DateTime sinceDate = since ?? DateTime.MinValue;
 
-            var lists = await listRepository.GetModifiedSinceAsync(sinceDate);
-            var items = await itemRepository.GetModifiedSinceAsync(sinceDate);
-            var categories = await categoryRepository.GetModifiedSinceAsync(sinceDate);
+            IEnumerable<Core.Models.TodoList> lists = await listRepository.GetModifiedSinceAsync(sinceDate);
+            IEnumerable<Core.Models.TodoItem> items = await itemRepository.GetModifiedSinceAsync(sinceDate);
+            IEnumerable<Core.Models.Category> categories = await categoryRepository.GetModifiedSinceAsync(sinceDate);
 
-            var deletedListIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "TodoList");
-            var deletedItemIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "TodoItem");
-            var deletedCategoryIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "Category");
+            List<long> deletedListIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "TodoList");
+            List<long> deletedItemIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "TodoItem");
+            List<long> deletedCategoryIds = await deletedEntityRepository.GetDeletedIdsSinceAsync(sinceDate, "Category");
 
-            var response = new SyncResponseDto
+            SyncResponseDto response = new SyncResponseDto
             {
                 ServerTime = DateTime.UtcNow,
                 Lists = lists.Select(l => new TodoListDto

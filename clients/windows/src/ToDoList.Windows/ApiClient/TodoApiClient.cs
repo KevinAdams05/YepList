@@ -26,29 +26,32 @@ namespace ToDoList.Windows.ApiClient
 
         public async Task<List<TodoList>> GetListsAsync()
         {
-            var result = await httpClient.GetFromJsonAsync<List<TodoList>>("api/lists");
+            List<TodoList>? result = await httpClient.GetFromJsonAsync<List<TodoList>>("api/lists");
+
             return result ?? new List<TodoList>();
         }
 
         public async Task<TodoList> CreateListAsync(string name, int sortOrder = 0)
         {
-            var response = await httpClient.PostAsJsonAsync("api/lists",
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/lists",
                 new { name, sortOrder });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<TodoList>())!;
         }
 
         public async Task<TodoList> UpdateListAsync(long listId, string name, int sortOrder = 0)
         {
-            var response = await httpClient.PutAsJsonAsync($"api/lists/{listId}",
+            HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/lists/{listId}",
                 new { name, sortOrder });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<TodoList>())!;
         }
 
         public async Task DeleteListAsync(long listId)
         {
-            var response = await httpClient.DeleteAsync($"api/lists/{listId}");
+            HttpResponseMessage response = await httpClient.DeleteAsync($"api/lists/{listId}");
             response.EnsureSuccessStatusCode();
         }
 
@@ -56,29 +59,32 @@ namespace ToDoList.Windows.ApiClient
 
         public async Task<List<Category>> GetCategoriesAsync()
         {
-            var result = await httpClient.GetFromJsonAsync<List<Category>>("api/categories");
+            List<Category>? result = await httpClient.GetFromJsonAsync<List<Category>>("api/categories");
+
             return result ?? new List<Category>();
         }
 
         public async Task<Category> CreateCategoryAsync(string name, string? color)
         {
-            var response = await httpClient.PostAsJsonAsync("api/categories",
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/categories",
                 new { name, color });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<Category>())!;
         }
 
         public async Task<Category> UpdateCategoryAsync(long categoryId, string name, string? color)
         {
-            var response = await httpClient.PutAsJsonAsync($"api/categories/{categoryId}",
+            HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/categories/{categoryId}",
                 new { name, color });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<Category>())!;
         }
 
         public async Task DeleteCategoryAsync(long categoryId)
         {
-            var response = await httpClient.DeleteAsync($"api/categories/{categoryId}");
+            HttpResponseMessage response = await httpClient.DeleteAsync($"api/categories/{categoryId}");
             response.EnsureSuccessStatusCode();
         }
 
@@ -86,39 +92,43 @@ namespace ToDoList.Windows.ApiClient
 
         public async Task<List<TodoItem>> GetItemsByListAsync(long listId)
         {
-            var result = await httpClient.GetFromJsonAsync<List<TodoItem>>($"api/lists/{listId}/items");
+            List<TodoItem>? result = await httpClient.GetFromJsonAsync<List<TodoItem>>($"api/lists/{listId}/items");
+
             return result ?? new List<TodoItem>();
         }
 
         public async Task<TodoItem> CreateItemAsync(long listId, string title, string? notes,
             long? categoryId, DateTime? dueDate, int sortOrder = 0)
         {
-            var response = await httpClient.PostAsJsonAsync($"api/lists/{listId}/items",
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync($"api/lists/{listId}/items",
                 new { title, notes, categoryId, dueDate, sortOrder });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;
         }
 
         public async Task<TodoItem> UpdateItemAsync(long itemId, string title, string? notes,
             long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder = 0)
         {
-            var response = await httpClient.PutAsJsonAsync($"api/items/{itemId}",
+            HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/items/{itemId}",
                 new { title, notes, categoryId, isCompleted, dueDate, sortOrder });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;
         }
 
         public async Task<TodoItem> ToggleCompleteAsync(long itemId, bool isCompleted)
         {
-            var response = await httpClient.PatchAsJsonAsync($"api/items/{itemId}/complete",
+            HttpResponseMessage response = await httpClient.PatchAsJsonAsync($"api/items/{itemId}/complete",
                 new { isCompleted });
             response.EnsureSuccessStatusCode();
+
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;
         }
 
         public async Task DeleteItemAsync(long itemId)
         {
-            var response = await httpClient.DeleteAsync($"api/items/{itemId}");
+            HttpResponseMessage response = await httpClient.DeleteAsync($"api/items/{itemId}");
             response.EnsureSuccessStatusCode();
         }
 
@@ -126,15 +136,16 @@ namespace ToDoList.Windows.ApiClient
 
         public async Task<SyncResponse> SyncAsync()
         {
-            var sinceParam = lastSyncTime == DateTime.MinValue
+            string sinceParam = lastSyncTime == DateTime.MinValue
                 ? ""
                 : $"?since={lastSyncTime:O}";
 
-            var result = await httpClient.GetFromJsonAsync<SyncResponse>($"api/sync{sinceParam}");
+            SyncResponse? result = await httpClient.GetFromJsonAsync<SyncResponse>($"api/sync{sinceParam}");
             if (result != null)
             {
                 lastSyncTime = result.ServerTime;
             }
+
             return result ?? new SyncResponse();
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using ToDoList.Core.Interfaces;
@@ -18,8 +19,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<Category>> GetAllAsync()
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<Category>(
                 "SELECT category_id AS CategoryId, name AS Name, color AS Color, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +
@@ -28,8 +30,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<Category?> GetByIdAsync(long categoryId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QuerySingleOrDefaultAsync<Category>(
                 "SELECT category_id AS CategoryId, name AS Name, color AS Color, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +
@@ -39,9 +42,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<Category> InsertAsync(string name, string? color)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var id = await conn.ExecuteScalarAsync<long>(
+            long id = await conn.ExecuteScalarAsync<long>(
                 "INSERT INTO category (name, color) VALUES (@Name, @Color); " +
                 "SELECT LAST_INSERT_ID();",
                 new { Name = name, Color = color });
@@ -51,9 +54,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<Category?> UpdateAsync(long categoryId, string name, string? color)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "UPDATE category SET name = @Name, color = @Color " +
                 "WHERE category_id = @CategoryId",
                 new { CategoryId = categoryId, Name = name, Color = color });
@@ -68,10 +71,10 @@ namespace ToDoList.Data.Repositories
 
         public async Task<bool> DeleteAsync(long categoryId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
 
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "DELETE FROM category WHERE category_id = @CategoryId",
                 new { CategoryId = categoryId });
 
@@ -87,8 +90,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<Category>> GetModifiedSinceAsync(DateTime since)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<Category>(
                 "SELECT category_id AS CategoryId, name AS Name, color AS Color, " +
                 "created_date AS CreatedDate, modified_date AS ModifiedDate " +

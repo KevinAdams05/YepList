@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using ToDoList.Core.Interfaces;
@@ -24,8 +25,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<TodoItem>> GetByListIdAsync(long listId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<TodoItem>(
                 $"SELECT {SelectColumns} FROM todo_item " +
                 "WHERE list_id = @ListId ORDER BY sort_order, title",
@@ -34,8 +36,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<TodoItem?> GetByIdAsync(long itemId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QuerySingleOrDefaultAsync<TodoItem>(
                 $"SELECT {SelectColumns} FROM todo_item WHERE item_id = @ItemId",
                 new { ItemId = itemId });
@@ -44,9 +47,9 @@ namespace ToDoList.Data.Repositories
         public async Task<TodoItem> InsertAsync(long listId, string title, string? notes,
             long? categoryId, DateTime? dueDate, int sortOrder)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var id = await conn.ExecuteScalarAsync<long>(
+            long id = await conn.ExecuteScalarAsync<long>(
                 "INSERT INTO todo_item (list_id, title, notes, category_id, due_date, sort_order) " +
                 "VALUES (@ListId, @Title, @Notes, @CategoryId, @DueDate, @SortOrder); " +
                 "SELECT LAST_INSERT_ID();",
@@ -66,9 +69,9 @@ namespace ToDoList.Data.Repositories
         public async Task<TodoItem?> UpdateAsync(long itemId, string title, string? notes,
             long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "UPDATE todo_item SET title = @Title, notes = @Notes, " +
                 "category_id = @CategoryId, is_completed = @IsCompleted, " +
                 "due_date = @DueDate, sort_order = @SortOrder " +
@@ -94,9 +97,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<TodoItem?> ToggleCompleteAsync(long itemId, bool isCompleted)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "UPDATE todo_item SET is_completed = @IsCompleted WHERE item_id = @ItemId",
                 new { ItemId = itemId, IsCompleted = isCompleted });
 
@@ -110,10 +113,10 @@ namespace ToDoList.Data.Repositories
 
         public async Task<bool> DeleteAsync(long itemId)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
 
-            var rowsAffected = await conn.ExecuteAsync(
+            int rowsAffected = await conn.ExecuteAsync(
                 "DELETE FROM todo_item WHERE item_id = @ItemId",
                 new { ItemId = itemId });
 
@@ -129,8 +132,9 @@ namespace ToDoList.Data.Repositories
 
         public async Task<IEnumerable<TodoItem>> GetModifiedSinceAsync(DateTime since)
         {
-            using var conn = connectionFactory.CreateConnection();
+            using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
+
             return await conn.QueryAsync<TodoItem>(
                 $"SELECT {SelectColumns} FROM todo_item WHERE modified_date > @Since",
                 new { Since = since });

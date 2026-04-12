@@ -85,17 +85,17 @@ namespace ToDoList.Windows.Forms
             int controlWidth = 350;
 
             // Title
-            var lblTitle = new KryptonLabel { Text = "Title:", Location = new Point(12, y + 2), AutoSize = true };
+            KryptonLabel lblTitle = new KryptonLabel { Text = "Title:", Location = new Point(12, y + 2), AutoSize = true };
             txtTitle = new KryptonTextBox { Location = new Point(controlLeft, y), Width = controlWidth };
             y += 34;
 
             // Notes
-            var lblNotes = new KryptonLabel { Text = "Notes:", Location = new Point(12, y + 2), AutoSize = true };
+            KryptonLabel lblNotes = new KryptonLabel { Text = "Notes:", Location = new Point(12, y + 2), AutoSize = true };
             txtNotes = new KryptonRichTextBox { Location = new Point(controlLeft, y), Width = controlWidth, Height = 120 };
             y += 130;
 
             // Category
-            var lblCategory = new KryptonLabel { Text = "Category:", Location = new Point(12, y + 2), AutoSize = true };
+            KryptonLabel lblCategory = new KryptonLabel { Text = "Category:", Location = new Point(12, y + 2), AutoSize = true };
             cboCategory = new KryptonComboBox
             {
                 Location = new Point(controlLeft, y),
@@ -147,7 +147,7 @@ namespace ToDoList.Windows.Forms
         {
             cboCategory.Items.Clear();
             cboCategory.Items.Add("(None)");
-            foreach (var cat in categories)
+            foreach (Category cat in categories)
             {
                 cboCategory.Items.Add(cat);
             }

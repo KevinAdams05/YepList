@@ -18,49 +18,54 @@ namespace ToDoList.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var categories = await categoryRepository.GetAllAsync();
-            var dtos = categories.Select(c => MapToDto(c));
+            IEnumerable<Core.Models.Category> categories = await categoryRepository.GetAllAsync();
+            IEnumerable<CategoryDto> dtos = categories.Select(c => MapToDto(c));
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(long id)
         {
-            var category = await categoryRepository.GetByIdAsync(id);
+            Core.Models.Category? category = await categoryRepository.GetByIdAsync(id);
             if (category == null)
             {
                 return NotFound();
             }
+
             return Ok(MapToDto(category));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {
-            var category = await categoryRepository.InsertAsync(request.Name, request.Color);
-            var dto = MapToDto(category);
+            Core.Models.Category category = await categoryRepository.InsertAsync(request.Name, request.Color);
+            CategoryDto dto = MapToDto(category);
+
             return CreatedAtAction(nameof(GetById), new { id = dto.CategoryId }, dto);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] CreateCategoryRequest request)
         {
-            var category = await categoryRepository.UpdateAsync(id, request.Name, request.Color);
+            Core.Models.Category? category = await categoryRepository.UpdateAsync(id, request.Name, request.Color);
             if (category == null)
             {
                 return NotFound();
             }
+
             return Ok(MapToDto(category));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(long id)
         {
-            var deleted = await categoryRepository.DeleteAsync(id);
+            bool deleted = await categoryRepository.DeleteAsync(id);
             if (!deleted)
             {
                 return NotFound();
             }
+
             return NoContent();
         }
 

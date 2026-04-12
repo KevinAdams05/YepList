@@ -2,7 +2,7 @@ using ToDoList.Core.Interfaces;
 using ToDoList.Data;
 using ToDoList.Data.Repositories;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Database
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.UseCors();
 

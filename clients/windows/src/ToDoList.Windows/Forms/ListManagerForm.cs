@@ -76,7 +76,7 @@ namespace ToDoList.Windows.Forms
         private void RefreshListBox()
         {
             lstLists.Items.Clear();
-            foreach (var list in lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name))
+            foreach (TodoList list in lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name))
             {
                 lstLists.Items.Add(list);
             }
@@ -84,7 +84,7 @@ namespace ToDoList.Windows.Forms
 
         private async Task AddListAsync()
         {
-            var name = txtName.Text.Trim();
+            string name = txtName.Text.Trim();
             if (string.IsNullOrEmpty(name))
             {
                 return;
@@ -92,7 +92,7 @@ namespace ToDoList.Windows.Forms
 
             try
             {
-                var newList = await apiClient.CreateListAsync(name);
+                TodoList newList = await apiClient.CreateListAsync(name);
                 lists.Add(newList);
                 RefreshListBox();
                 txtName.Clear();
@@ -111,7 +111,7 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            var name = txtName.Text.Trim();
+            string name = txtName.Text.Trim();
             if (string.IsNullOrEmpty(name))
             {
                 return;
@@ -119,7 +119,7 @@ namespace ToDoList.Windows.Forms
 
             try
             {
-                var updated = await apiClient.UpdateListAsync(selected.ListId, name, selected.SortOrder);
+                TodoList updated = await apiClient.UpdateListAsync(selected.ListId, name, selected.SortOrder);
                 selected.Name = updated.Name;
                 RefreshListBox();
             }
@@ -137,7 +137,7 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            var result = KryptonMessageBox.Show(this,
+            DialogResult result = KryptonMessageBox.Show(this,
                 $"Delete list \"{selected.Name}\" and all its tasks?", "Confirm Delete",
                 KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);
 

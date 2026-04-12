@@ -22,6 +22,11 @@ type: feedback
 - camelCase for variables
 - No underscore prefix or m_ prefix on variables/enums
 - Descriptive names (countOfFailedRecords not x or numRec)
+- Avoid `var` — use explicit types unless the type is not expressible (e.g., anonymous types)
+
+**C# Return Statements:**
+- A blank line must precede the final `return` statement in a method/block
+- Exception: no blank line needed if the `return` is inside an `if` statement
 
 **C# Control Flow:**
 - Always use braces `{ }` for `if`, `else`, `foreach`, `for`, `while` — even for single-line bodies

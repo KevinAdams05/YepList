@@ -48,7 +48,7 @@ namespace ToDoList.Windows.Forms
             MinimumSize = new Size(800, 500);
 
             // ── Toolbar ─────────────────────────────────────
-            var toolPanel = new KryptonPanel { Dock = DockStyle.Top, Height = 45 };
+            KryptonPanel toolPanel = new KryptonPanel { Dock = DockStyle.Top, Height = 45 };
 
             btnAddTask = new KryptonButton { Text = "Add Task", Location = new Point(8, 8), Width = 90 };
             btnEditTask = new KryptonButton { Text = "Edit Task", Location = new Point(104, 8), Width = 90 };
@@ -72,9 +72,9 @@ namespace ToDoList.Windows.Forms
             };
 
             // ── Left Panel (Lists) ──────────────────────────
-            var leftPanel = new KryptonPanel { Dock = DockStyle.Fill };
+            KryptonPanel leftPanel = new KryptonPanel { Dock = DockStyle.Fill };
 
-            var lblLists = new KryptonLabel
+            KryptonLabel lblLists = new KryptonLabel
             {
                 Text = "Lists",
                 Dock = DockStyle.Top,
@@ -89,7 +89,7 @@ namespace ToDoList.Windows.Forms
             };
             listTreeView.AfterSelect += async (s, e) => await OnListSelectedAsync();
 
-            var leftButtonPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 75 };
+            KryptonPanel leftButtonPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 75 };
 
             btnNewList = new KryptonButton
             {
@@ -129,28 +129,28 @@ namespace ToDoList.Windows.Forms
             };
 
             // Columns
-            var colCompleted = new DataGridViewCheckBoxColumn
+            DataGridViewCheckBoxColumn colCompleted = new DataGridViewCheckBoxColumn
             {
                 Name = "IsCompleted",
                 HeaderText = "",
                 Width = 40,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.None
             };
-            var colTitle = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colTitle = new DataGridViewTextBoxColumn
             {
                 Name = "Title",
                 HeaderText = "Task",
                 ReadOnly = true,
                 FillWeight = 50
             };
-            var colCategory = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colCategory = new DataGridViewTextBoxColumn
             {
                 Name = "Category",
                 HeaderText = "Category",
                 ReadOnly = true,
                 FillWeight = 20
             };
-            var colDueDate = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colDueDate = new DataGridViewTextBoxColumn
             {
                 Name = "DueDate",
                 HeaderText = "Due Date",
@@ -166,7 +166,7 @@ namespace ToDoList.Windows.Forms
             splitContainer.Panel2.Controls.Add(taskGrid);
 
             // ── Status Bar ──────────────────────────────────
-            var statusPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 28 };
+            KryptonPanel statusPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 28 };
             lblStatus = new KryptonLabel
             {
                 Text = "Connecting...",
@@ -223,12 +223,12 @@ namespace ToDoList.Windows.Forms
         {
             try
             {
-                var syncResult = await apiClient.SyncAsync();
+                SyncResponse syncResult = await apiClient.SyncAsync();
 
                 // Apply list changes
-                foreach (var list in syncResult.Lists)
+                foreach (TodoList list in syncResult.Lists)
                 {
-                    var existing = lists.FirstOrDefault(l => l.ListId == list.ListId);
+                    TodoList? existing = lists.FirstOrDefault(l => l.ListId == list.ListId);
                     if (existing != null)
                     {
                         existing.Name = list.Name;
@@ -243,9 +243,9 @@ namespace ToDoList.Windows.Forms
                 lists.RemoveAll(l => syncResult.DeletedListIds.Contains(l.ListId));
 
                 // Apply category changes
-                foreach (var cat in syncResult.Categories)
+                foreach (Category cat in syncResult.Categories)
                 {
-                    var existing = categories.FirstOrDefault(c => c.CategoryId == cat.CategoryId);
+                    Category? existing = categories.FirstOrDefault(c => c.CategoryId == cat.CategoryId);
                     if (existing != null)
                     {
                         existing.Name = cat.Name;
@@ -262,9 +262,9 @@ namespace ToDoList.Windows.Forms
                 // Apply item changes for current list
                 if (selectedListId > 0)
                 {
-                    foreach (var item in syncResult.Items.Where(i => i.ListId == selectedListId))
+                    foreach (TodoItem item in syncResult.Items.Where(i => i.ListId == selectedListId))
                     {
-                        var existing = currentItems.FirstOrDefault(i => i.ItemId == item.ItemId);
+                        TodoItem? existing = currentItems.FirstOrDefault(i => i.ItemId == item.ItemId);
                         if (existing != null)
                         {
                             existing.Title = item.Title;
@@ -307,9 +307,9 @@ namespace ToDoList.Windows.Forms
         {
             listTreeView.BeginUpdate();
             listTreeView.Nodes.Clear();
-            foreach (var list in lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name))
+            foreach (TodoList list in lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name))
             {
-                var node = new TreeNode(list.Name) { Tag = list.ListId };
+                TreeNode node = new TreeNode(list.Name) { Tag = list.ListId };
                 listTreeView.Nodes.Add(node);
 
                 if (list.ListId == selectedListId)
@@ -323,17 +323,17 @@ namespace ToDoList.Windows.Forms
         private void RefreshTaskGrid()
         {
             taskGrid.Rows.Clear();
-            foreach (var item in currentItems.OrderBy(i => i.IsCompleted).ThenBy(i => i.SortOrder).ThenBy(i => i.Title))
+            foreach (TodoItem item in currentItems.OrderBy(i => i.IsCompleted).ThenBy(i => i.SortOrder).ThenBy(i => i.Title))
             {
-                var categoryName = "";
+                string categoryName = "";
                 if (item.CategoryId.HasValue)
                 {
-                    var cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
+                    Category? cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
                     categoryName = cat?.Name ?? "";
                 }
 
-                var dueDateText = item.DueDate?.ToString("yyyy-MM-dd") ?? "";
-                var rowIndex = taskGrid.Rows.Add(item.IsCompleted, item.Title, categoryName, dueDateText);
+                string dueDateText = item.DueDate?.ToString("yyyy-MM-dd") ?? "";
+                int rowIndex = taskGrid.Rows.Add(item.IsCompleted, item.Title, categoryName, dueDateText);
                 taskGrid.Rows[rowIndex].Tag = item;
 
                 // Style completed tasks with strikethrough
@@ -346,12 +346,12 @@ namespace ToDoList.Windows.Forms
                 // Color the category cell by category color
                 if (item.CategoryId.HasValue)
                 {
-                    var cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
+                    Category? cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
                     if (cat?.Color != null)
                     {
                         try
                         {
-                            var color = ColorTranslator.FromHtml(cat.Color);
+                            Color color = ColorTranslator.FromHtml(cat.Color);
                             taskGrid.Rows[rowIndex].Cells["Category"].Style.ForeColor = color;
                         }
                         catch
@@ -398,7 +398,7 @@ namespace ToDoList.Windows.Forms
             {
                 try
                 {
-                    var updated = await apiClient.ToggleCompleteAsync(item.ItemId, !item.IsCompleted);
+                    TodoItem updated = await apiClient.ToggleCompleteAsync(item.ItemId, !item.IsCompleted);
                     item.IsCompleted = updated.IsCompleted;
                     item.ModifiedDate = updated.ModifiedDate;
                     RefreshTaskGrid();
@@ -421,12 +421,12 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            using var form = new TaskEditForm(categories, null);
+            using TaskEditForm form = new TaskEditForm(categories, null);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 try
                 {
-                    var newItem = await apiClient.CreateItemAsync(
+                    TodoItem newItem = await apiClient.CreateItemAsync(
                         selectedListId, form.TaskTitle, form.TaskNotes,
                         form.SelectedCategoryId, form.TaskDueDate, 0);
                     currentItems.Add(newItem);
@@ -441,18 +441,18 @@ namespace ToDoList.Windows.Forms
 
         private async Task EditTaskAsync()
         {
-            var item = GetSelectedItem();
+            TodoItem? item = GetSelectedItem();
             if (item == null)
             {
                 return;
             }
 
-            using var form = new TaskEditForm(categories, item);
+            using TaskEditForm form = new TaskEditForm(categories, item);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 try
                 {
-                    var updated = await apiClient.UpdateItemAsync(
+                    TodoItem updated = await apiClient.UpdateItemAsync(
                         item.ItemId, form.TaskTitle, form.TaskNotes,
                         form.SelectedCategoryId, item.IsCompleted, form.TaskDueDate, item.SortOrder);
                     item.Title = updated.Title;
@@ -471,13 +471,13 @@ namespace ToDoList.Windows.Forms
 
         private async Task DeleteTaskAsync()
         {
-            var item = GetSelectedItem();
+            TodoItem? item = GetSelectedItem();
             if (item == null)
             {
                 return;
             }
 
-            var result = KryptonMessageBox.Show(this,
+            DialogResult result = KryptonMessageBox.Show(this,
                 $"Delete task \"{item.Title}\"?", "Confirm Delete",
                 KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);
 
@@ -502,6 +502,7 @@ namespace ToDoList.Windows.Forms
             {
                 return null;
             }
+
             return taskGrid.SelectedRows[0].Tag as TodoItem;
         }
 
@@ -509,7 +510,7 @@ namespace ToDoList.Windows.Forms
 
         private async Task ManageListsAsync()
         {
-            using var form = new ListManagerForm(apiClient, lists);
+            using ListManagerForm form = new ListManagerForm(apiClient, lists);
             form.ShowDialog(this);
             lists = await apiClient.GetListsAsync();
             RefreshListTree();
@@ -517,7 +518,7 @@ namespace ToDoList.Windows.Forms
 
         private async Task ManageCategoriesAsync()
         {
-            using var form = new CategoryManagerForm(apiClient, categories);
+            using CategoryManagerForm form = new CategoryManagerForm(apiClient, categories);
             form.ShowDialog(this);
             categories = await apiClient.GetCategoriesAsync();
             RefreshTaskGrid();

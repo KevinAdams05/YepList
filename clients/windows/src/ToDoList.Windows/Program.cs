@@ -15,7 +15,7 @@ namespace ToDoList.Windows
         {
             ApplicationConfiguration.Initialize();
 
-            var serverUrl = LoadServerUrl();
+            string? serverUrl = LoadServerUrl();
             if (string.IsNullOrEmpty(serverUrl))
             {
                 KryptonMessageBox.Show(
@@ -26,19 +26,19 @@ namespace ToDoList.Windows
                 return;
             }
 
-            var apiClient = new TodoApiClient(serverUrl);
+            TodoApiClient apiClient = new TodoApiClient(serverUrl);
             Application.Run(new MainForm(apiClient));
         }
 
         private static string? LoadServerUrl()
         {
-            var settingsPath = Path.Combine(AppContext.BaseDirectory, "settings.json");
+            string settingsPath = Path.Combine(AppContext.BaseDirectory, "settings.json");
             if (File.Exists(settingsPath))
             {
                 try
                 {
-                    var json = File.ReadAllText(settingsPath);
-                    var settings = JsonSerializer.Deserialize<AppSettings>(json);
+                    string json = File.ReadAllText(settingsPath);
+                    AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json);
                     return settings?.ServerUrl;
                 }
                 catch
