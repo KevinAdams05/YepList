@@ -24,6 +24,7 @@ namespace ToDoList.Windows.Forms
         private KryptonButton btnEditTask = null!;
         private KryptonButton btnDeleteTask = null!;
         private KryptonButton btnRefresh = null!;
+        private KryptonButton btnAbout = null!;
         private KryptonLabel lblStatus = null!;
         private System.Windows.Forms.Timer syncTimer = null!;
         private KryptonSplitContainer splitContainer = null!;
@@ -61,13 +62,15 @@ namespace ToDoList.Windows.Forms
             btnEditTask = new KryptonButton { Text = "Edit Task", Location = new Point(104, 8), Width = 90 };
             btnDeleteTask = new KryptonButton { Text = "Delete Task", Location = new Point(200, 8), Width = 100 };
             btnRefresh = new KryptonButton { Text = "Refresh", Location = new Point(316, 8), Width = 80 };
+            btnAbout = new KryptonButton { Text = "About", Location = new Point(412, 8), Width = 80 };
 
             btnAddTask.Click += async (s, e) => await AddTaskAsync();
             btnEditTask.Click += async (s, e) => await EditTaskAsync();
             btnDeleteTask.Click += async (s, e) => await DeleteTaskAsync();
             btnRefresh.Click += async (s, e) => await FullRefreshAsync();
+            btnAbout.Click += (s, e) => { using AboutForm form = new AboutForm(); form.ShowDialog(this); };
 
-            toolPanel.Controls.AddRange(new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh });
+            toolPanel.Controls.AddRange(new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh, btnAbout });
 
             // ── Split Container ─────────────────────────────
             splitContainer = new KryptonSplitContainer

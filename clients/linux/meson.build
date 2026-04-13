@@ -24,6 +24,7 @@ sources = files(
   'src/TaskEditDialog.vala',
   'src/ListSidebar.vala',
   'src/CategoryManagerDialog.vala',
+  'src/AboutDialog.vala',
 )
 
 executable('yep-list', sources,
@@ -35,4 +36,12 @@ executable('yep-list', sources,
 install_data('data/yeplist.png',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / '256x256' / 'apps',
   rename: 'com.github.kevinadams05.yeplist.png',
+)
+
+# Install logo images for About dialog
+install_data('data/logo-dark.png',
+  install_dir: get_option('datadir') / 'yep-list',
+)
+install_data('data/logo-light.png',
+  install_dir: get_option('datadir') / 'yep-list',
 )
