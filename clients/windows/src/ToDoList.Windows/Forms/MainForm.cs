@@ -365,6 +365,27 @@ namespace ToDoList.Windows.Forms
             LayoutHeaderButtons();
             await FullRefreshAsync();
             syncTimer.Start();
+
+            // Listen for Windows theme changes
+            Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            Microsoft.Win32.SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+            base.OnFormClosed(e);
+        }
+
+        private void OnUserPreferenceChanged(object sender, Microsoft.Win32.UserPreferenceChangedEventArgs e)
+        {
+            if (e.Category == Microsoft.Win32.UserPreferenceCategory.General)
+            {
+                if (AppTheme.IsCurrentlyDark() != AppTheme.IsDark)
+                {
+                    Application.Restart();
+                    Environment.Exit(0);
+                }
+            }
         }
 
         // ── Data Loading ────────────────────────────────────────

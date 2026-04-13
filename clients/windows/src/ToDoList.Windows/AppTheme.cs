@@ -143,6 +143,11 @@ namespace ToDoList.Windows
             }
         }
 
+        /// <summary>
+        /// Re-reads the current Windows theme setting. Compare with IsDark to detect changes.
+        /// </summary>
+        public static bool IsCurrentlyDark() => DetectDarkMode();
+
         public static string LogoFileName => IsDark ? "logo-dark.png" : "logo-light.png";
 
         /// <summary>
