@@ -7,7 +7,7 @@ using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
 {
-    public class TaskEditForm : KryptonForm
+    public class TaskEditForm : Form
     {
         private KryptonTextBox txtTitle = null!;
         private KryptonRichTextBox txtNotes = null!;
@@ -80,6 +80,7 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            BackColor = Color.White;
             Padding = new Padding(24, 20, 24, 20);
 
             int y = 24;
@@ -142,8 +143,8 @@ namespace ToDoList.Windows.Forms
             {
                 if (string.IsNullOrWhiteSpace(txtTitle.Text))
                 {
-                    KryptonMessageBox.Show(this, "Title is required.", "Validation",
-                        KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Warning);
+                    MessageBox.Show(this, "Title is required.", "Validation",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     DialogResult = DialogResult.None;
                     return;
                 }

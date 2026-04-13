@@ -10,7 +10,7 @@ using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
 {
-    public class ListManagerForm : KryptonForm
+    public class ListManagerForm : Form
     {
         private readonly TodoApiClient apiClient;
 
@@ -39,6 +39,7 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            BackColor = Color.White;
 
             lstLists = new KryptonListBox
             {
@@ -101,8 +102,8 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                    KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -127,8 +128,8 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                    KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -139,9 +140,9 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            DialogResult result = KryptonMessageBox.Show(this,
+            DialogResult result = MessageBox.Show(this,
                 $"Delete list \"{selected.Name}\" and all its tasks?", "Confirm Delete",
-                KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
@@ -154,8 +155,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                        KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                    MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

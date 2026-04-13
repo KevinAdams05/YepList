@@ -10,7 +10,7 @@ using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
 {
-    public class CategoryManagerForm : KryptonForm
+    public class CategoryManagerForm : Form
     {
         private readonly TodoApiClient apiClient;
 
@@ -42,8 +42,12 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            BackColor = Color.White;
 
             // Grid
+            KryptonManager kryptonManager = new KryptonManager();
+            kryptonManager.GlobalPaletteMode = PaletteMode.ProfessionalOffice2003;
+
             gridCategories = new KryptonDataGridView
             {
                 Location = new Point(20, 20),
@@ -73,14 +77,26 @@ namespace ToDoList.Windows.Forms
             };
 
             // Input fields
-            KryptonLabel lblName = new KryptonLabel { Text = "Name", Location = new Point(20, 278), AutoSize = true };
-            lblName.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
-            txtName = new KryptonTextBox { Location = new Point(90, 276), Width = 320 };
+            Label lblName = new Label
+            {
+                Text = "Name",
+                Location = new Point(20, 280),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = Color.FromArgb(32, 32, 32)
+            };
+            txtName = new KryptonTextBox { Location = new Point(80, 276), Width = 330 };
             txtName.StateCommon.Border.Rounding = 4;
 
-            KryptonLabel lblColor = new KryptonLabel { Text = "Color", Location = new Point(20, 318), AutoSize = true };
-            lblColor.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
-            txtColor = new KryptonTextBox { Location = new Point(90, 316), Width = 200 };
+            Label lblColor = new Label
+            {
+                Text = "Color",
+                Location = new Point(20, 320),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = Color.FromArgb(32, 32, 32)
+            };
+            txtColor = new KryptonTextBox { Location = new Point(80, 316), Width = 210 };
             txtColor.StateCommon.Border.Rounding = 4;
             txtColor.TextChanged += (s, e) => UpdateColorPreview();
 
@@ -199,8 +215,8 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                    KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -229,8 +245,8 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                    KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -242,10 +258,10 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            DialogResult result = KryptonMessageBox.Show(this,
+            DialogResult result = MessageBox.Show(this,
                 $"Delete category \"{selected.Name}\"? Tasks using this category will become uncategorized.",
                 "Confirm Delete",
-                KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
@@ -259,8 +275,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    KryptonMessageBox.Show(this, $"Error: {ex.Message}", "Error",
-                        KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Error);
+                    MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

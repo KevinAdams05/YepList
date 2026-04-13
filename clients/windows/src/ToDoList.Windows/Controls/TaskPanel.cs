@@ -46,18 +46,18 @@ namespace ToDoList.Windows.Controls
         {
             Item = item;
 
-            Height = 56;
+            bool hasDueDate = item.DueDate.HasValue;
+            Height = hasDueDate ? 62 : 50;
             Padding = new Padding(12, 8, 12, 8);
             Margin = new Padding(4, 2, 4, 2);
             Cursor = Cursors.Hand;
             DoubleBuffered = true;
             BackColor = Color.Transparent;
 
-            // Checkbox
+            // Checkbox — vertically centered
             checkBox = new LargeCheckBox
             {
                 Checked = item.IsCompleted,
-                Location = new Point(12, 12),
                 Size = new Size(30, 30),
                 Cursor = Cursors.Hand
             };
@@ -67,36 +67,34 @@ namespace ToDoList.Windows.Controls
             lblTitle = new Label
             {
                 Text = item.Title,
-                Font = new Font("Segoe UI", 10f, item.IsCompleted ? FontStyle.Strikeout : FontStyle.Regular),
+                Font = new Font("Segoe UI", 14f, item.IsCompleted ? FontStyle.Strikeout : FontStyle.Regular),
                 ForeColor = item.IsCompleted ? CompletedTextColor : TitleColor,
-                Location = new Point(48, 8),
                 AutoSize = false,
-                Height = 22,
+                Height = 28,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Cursor = Cursors.Hand,
                 UseCompatibleTextRendering = true,
                 BackColor = Color.Transparent
             };
 
-            // Category badge
-            lblCategory = new Label
+            // Due date — below title on the left
+            lblDueDate = new Label
             {
-                Text = categoryName,
+                Text = item.DueDate?.ToString("MMM d, yyyy") ?? "",
                 Font = new Font("Segoe UI", 8f),
-                ForeColor = categoryColor ?? SubtextColor,
-                Location = new Point(48, 30),
+                ForeColor = GetDueDateColor(item),
                 AutoSize = true,
                 Cursor = Cursors.Hand,
                 UseCompatibleTextRendering = true,
                 BackColor = Color.Transparent
             };
 
-            // Due date
-            lblDueDate = new Label
+            // Category badge — far right, vertically centered
+            lblCategory = new Label
             {
-                Text = item.DueDate?.ToString("MMM d, yyyy") ?? "",
-                Font = new Font("Segoe UI", 8f),
-                ForeColor = GetDueDateColor(item),
+                Text = categoryName,
+                Font = new Font("Segoe UI", 9f),
+                ForeColor = categoryColor ?? SubtextColor,
                 AutoSize = true,
                 Cursor = Cursors.Hand,
                 UseCompatibleTextRendering = true,
@@ -128,19 +126,36 @@ namespace ToDoList.Windows.Controls
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            if (lblTitle == null || lblDueDate == null)
+            if (lblTitle == null || lblCategory == null || checkBox == null || lblDueDate == null)
             {
                 return;
             }
 
-            int titleWidth = Width - 200;
+            bool hasDueDate = !string.IsNullOrEmpty(lblDueDate.Text);
+
+            // Checkbox — vertically centered
+            checkBox.Location = new Point(12, (Height - checkBox.Height) / 2);
+
+            // Category on far right, vertically centered
+            int catWidth = lblCategory.PreferredWidth;
+            lblCategory.Location = new Point(Width - catWidth - 20, (Height - lblCategory.Height) / 2);
+
+            // Title + due date block centered vertically
+            int textLeft = 50;
+            int blockHeight = hasDueDate ? lblTitle.Height + lblDueDate.Height + 2 : lblTitle.Height;
+            int blockTop = (Height - blockHeight) / 2;
+
+            lblTitle.Location = new Point(textLeft, blockTop);
+            lblDueDate.Location = new Point(textLeft, blockTop + lblTitle.Height + 2);
+
+            // Title fills space between checkbox and category
+            int titleWidth = Width - textLeft - catWidth - 32;
             if (titleWidth < 100)
             {
                 titleWidth = 100;
             }
 
             lblTitle.Width = titleWidth;
-            lblDueDate.Location = new Point(Width - lblDueDate.Width - 16, 16);
         }
 
         protected override void OnPaint(PaintEventArgs e)

@@ -5,17 +5,34 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Krypton.Toolkit;
 using ToDoList.Windows.ApiClient;
 using ToDoList.Windows.Controls;
 using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
 {
-    public class MainForm : KryptonForm
+    public class MainForm : Form
     {
+        private const int WM_SETREDRAW = 0x000B;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private static void BeginUpdate(Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        private static void EndUpdate(Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
+            control.Invalidate(true);
+        }
+
         private readonly TodoApiClient apiClient;
 
         // Colors
@@ -34,7 +51,9 @@ namespace ToDoList.Windows.Forms
         private Panel contentPanel = null!;
         private Panel headerPanel = null!;
         private Label lblHeaderTitle = null!;
+        private Control[] headerButtons = null!;
         private Panel taskListPanel = null!;
+        private TextBox txtQuickAdd = null!;
         private Label lblStatus = null!;
         private System.Windows.Forms.Timer syncTimer = null!;
 
@@ -86,7 +105,7 @@ namespace ToDoList.Windows.Forms
             Label lblSidebarTitle = new Label
             {
                 Text = "Lists",
-                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(32, 32, 32),
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -172,50 +191,46 @@ namespace ToDoList.Windows.Forms
             };
             headerPanel.Controls.Add(headerBorder);
 
+            int btnHeight = 34;
+            int btnY = (56 - btnHeight) / 2;
+
             lblHeaderTitle = new Label
             {
                 Text = "Tasks",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(32, 32, 32),
-                Dock = DockStyle.Left,
+                Location = new Point(20, 0),
                 AutoSize = true,
+                Height = 56,
                 TextAlign = ContentAlignment.MiddleLeft,
                 UseCompatibleTextRendering = true
             };
             headerPanel.Controls.Add(lblHeaderTitle);
 
-            // Header buttons (right-aligned)
-            FlowLayoutPanel headerButtons = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Right,
-                FlowDirection = FlowDirection.LeftToRight,
-                AutoSize = true,
-                WrapContents = false,
-                Padding = new Padding(0, 10, 0, 0),
-                BackColor = HeaderBg
-            };
-
-            AccentButton btnAddTask = new AccentButton { Text = "Add Task", Width = 100 };
+            // Header buttons — absolute positioned, vertically centered
+            AccentButton btnAddTask = new AccentButton { Text = "Add Task", Width = 100, Height = btnHeight };
             btnAddTask.Click += async (s, e) => await AddTaskAsync();
-            headerButtons.Controls.Add(btnAddTask);
 
-            FlatButton btnEditTask = new FlatButton { Text = "Edit", Width = 70, Margin = new Padding(4, 0, 0, 0) };
+            FlatButton btnEditTask = new FlatButton { Text = "Edit", Width = 70, Height = btnHeight };
             btnEditTask.Click += async (s, e) => await EditTaskAsync();
-            headerButtons.Controls.Add(btnEditTask);
 
-            FlatButton btnDeleteTask = new FlatButton { Text = "Delete", Width = 70, Margin = new Padding(4, 0, 0, 0) };
+            FlatButton btnDeleteTask = new FlatButton { Text = "Delete", Width = 70, Height = btnHeight };
             btnDeleteTask.Click += async (s, e) => await DeleteTaskAsync();
-            headerButtons.Controls.Add(btnDeleteTask);
 
-            FlatButton btnRefresh = new FlatButton { Text = "Refresh", Width = 76, Margin = new Padding(4, 0, 0, 0) };
+            FlatButton btnRefresh = new FlatButton { Text = "Refresh", Width = 76, Height = btnHeight };
             btnRefresh.Click += async (s, e) => await FullRefreshAsync();
-            headerButtons.Controls.Add(btnRefresh);
 
-            FlatButton btnAbout = new FlatButton { Text = "About", Width = 66, Margin = new Padding(4, 0, 0, 0) };
+            FlatButton btnAbout = new FlatButton { Text = "About", Width = 66, Height = btnHeight };
             btnAbout.Click += (s, e) => { using AboutForm form = new AboutForm(); form.ShowDialog(this); };
-            headerButtons.Controls.Add(btnAbout);
 
-            headerPanel.Controls.Add(headerButtons);
+            headerButtons = new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh, btnAbout };
+            foreach (Control btn in headerButtons)
+            {
+                btn.Top = btnY;
+                headerPanel.Controls.Add(btn);
+            }
+
+            headerPanel.Resize += (s, e) => LayoutHeaderButtons();
 
             // Task list (scrollable panel, items dock Top)
             Panel taskListContainer = new Panel
@@ -231,6 +246,10 @@ namespace ToDoList.Windows.Forms
                 AutoScroll = true,
                 BackColor = ContentBg
             };
+            // Enable double buffering to prevent flicker during refreshes
+            typeof(Panel).InvokeMember("DoubleBuffered",
+                BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
+                null, taskListPanel, new object[] { true });
             taskListContainer.Controls.Add(taskListPanel);
 
             // Status bar
@@ -261,8 +280,45 @@ namespace ToDoList.Windows.Forms
             };
             statusPanel.Controls.Add(lblStatus);
 
+            // Quick-add bar
+            Panel quickAddPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 46,
+                BackColor = HeaderBg,
+                Padding = new Padding(16, 8, 16, 8)
+            };
+
+            Panel quickAddBorder = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 1,
+                BackColor = BorderColor
+            };
+            quickAddPanel.Controls.Add(quickAddBorder);
+
+            txtQuickAdd = new TextBox
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 11f),
+                PlaceholderText = "Add a new task...",
+                BorderStyle = BorderStyle.None,
+                BackColor = HeaderBg
+            };
+            txtQuickAdd.KeyDown += async (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter && !string.IsNullOrWhiteSpace(txtQuickAdd.Text))
+                {
+                    e.SuppressKeyPress = true;
+                    await QuickAddTaskAsync(txtQuickAdd.Text.Trim());
+                    txtQuickAdd.Clear();
+                }
+            };
+            quickAddPanel.Controls.Add(txtQuickAdd);
+
             contentPanel.Controls.Add(taskListContainer);
             contentPanel.Controls.Add(headerPanel);
+            contentPanel.Controls.Add(quickAddPanel);
             contentPanel.Controls.Add(statusPanel);
 
             // ── Assemble ───────────────────────────────────────
@@ -280,6 +336,7 @@ namespace ToDoList.Windows.Forms
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
+            LayoutHeaderButtons();
             await FullRefreshAsync();
             syncTimer.Start();
         }
@@ -400,10 +457,28 @@ namespace ToDoList.Windows.Forms
             }
         }
 
+        private void LayoutHeaderButtons()
+        {
+            if (headerButtons == null || headerPanel == null)
+            {
+                return;
+            }
+
+            int gap = 4;
+            int x = headerPanel.Width - headerPanel.Padding.Right;
+            for (int i = headerButtons.Length - 1; i >= 0; i--)
+            {
+                x -= headerButtons[i].Width;
+                headerButtons[i].Left = x;
+                x -= gap;
+            }
+        }
+
         // ── UI Refresh ──────────────────────────────────────────
 
         private void RefreshSidebarLists()
         {
+            BeginUpdate(listPanel);
             listPanel.SuspendLayout();
             listPanel.Controls.Clear();
 
@@ -432,11 +507,13 @@ namespace ToDoList.Windows.Forms
                 listPanel.Controls.Add(row);
             }
 
-            listPanel.ResumeLayout();
+            listPanel.ResumeLayout(true);
+            EndUpdate(listPanel);
         }
 
         private void RefreshTaskList()
         {
+            BeginUpdate(taskListPanel);
             taskListPanel.SuspendLayout();
             taskListPanel.Controls.Clear();
             selectedTaskPanel = null;
@@ -506,7 +583,8 @@ namespace ToDoList.Windows.Forms
                 taskListPanel.Controls.Add(panel);
             }
 
-            taskListPanel.ResumeLayout();
+            taskListPanel.ResumeLayout(true);
+            EndUpdate(taskListPanel);
         }
 
         private void UpdateStatus(string message)
@@ -555,12 +633,33 @@ namespace ToDoList.Windows.Forms
 
         // ── Task CRUD ───────────────────────────────────────────
 
+        private async Task QuickAddTaskAsync(string title)
+        {
+            if (selectedListId < 0)
+            {
+                UpdateStatus("Select a list first");
+                return;
+            }
+
+            try
+            {
+                TodoItem newItem = await apiClient.CreateItemAsync(
+                    selectedListId, title, null, null, null, 0);
+                currentItems.Add(newItem);
+                RefreshTaskList();
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error creating task: {ex.Message}");
+            }
+        }
+
         private async Task AddTaskAsync()
         {
             if (selectedListId < 0)
             {
-                KryptonMessageBox.Show(this, "Please select a list first.", "No List Selected",
-                    KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Information);
+                MessageBox.Show(this, "Please select a list first.", "No List Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 return;
             }
@@ -621,9 +720,9 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            DialogResult result = KryptonMessageBox.Show(this,
+            DialogResult result = MessageBox.Show(this,
                 $"Delete task \"{item.Title}\"?", "Confirm Delete",
-                KryptonMessageBoxButtons.YesNo, KryptonMessageBoxIcon.Question);
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {

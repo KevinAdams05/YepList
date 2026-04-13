@@ -2,12 +2,11 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using Krypton.Toolkit;
 using Microsoft.Win32;
 
 namespace ToDoList.Windows.Forms
 {
-    public class AboutForm : KryptonForm
+    public class AboutForm : Form
     {
         private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
 
