@@ -34,6 +34,7 @@ namespace ToDoList.Windows.Forms
         }
 
         private readonly TodoApiClient apiClient;
+        private readonly AppSettings settings;
 
         // Controls
         private Panel sidebarPanel = null!;
@@ -55,9 +56,10 @@ namespace ToDoList.Windows.Forms
         private long selectedListId = -1;
         private List<TaskPanel> selectedTaskPanels = new();
 
-        public MainForm(TodoApiClient apiClient)
+        public MainForm(TodoApiClient apiClient, AppSettings settings)
         {
             this.apiClient = apiClient;
+            this.settings = settings;
             InitializeComponents();
             AppTheme.StyleForm(this);
             SetupSyncTimer();
@@ -399,10 +401,18 @@ namespace ToDoList.Windows.Forms
                 categories = await apiClient.GetCategoriesAsync();
                 RefreshSidebarLists();
 
-                // Auto-select first list if none selected
+                // Auto-select default list, or first list if none selected
                 if (selectedListId < 0 && lists.Count > 0)
                 {
-                    selectedListId = lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name).First().ListId;
+                    if (settings.DefaultListId.HasValue &&
+                        lists.Any(l => l.ListId == settings.DefaultListId.Value))
+                    {
+                        selectedListId = settings.DefaultListId.Value;
+                    }
+                    else
+                    {
+                        selectedListId = lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name).First().ListId;
+                    }
                     RefreshSidebarLists();
                 }
 
@@ -570,6 +580,18 @@ namespace ToDoList.Windows.Forms
                     _ = DeleteListInlineAsync(listId);
                 };
                 menu.Items.Add(deleteItem);
+
+                menu.Items.Add(new ToolStripSeparator());
+
+                ToolStripMenuItem setDefaultItem = new ToolStripMenuItem("Set as Default");
+                setDefaultItem.Checked = settings.DefaultListId == list.ListId;
+                setDefaultItem.Click += (s, e) =>
+                {
+                    settings.DefaultListId = list.ListId;
+                    settings.Save();
+                    RefreshSidebarLists();
+                };
+                menu.Items.Add(setDefaultItem);
 
                 row.ContextMenuStrip = menu;
 
