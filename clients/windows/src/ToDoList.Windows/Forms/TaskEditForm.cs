@@ -44,6 +44,7 @@ namespace ToDoList.Windows.Forms
             this.categories = categories;
             InitializeComponents();
             PopulateCategories();
+            AppTheme.StyleForm(this);
 
             if (existingItem != null)
             {
@@ -75,12 +76,12 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "New Task";
-            Size = new Size(500, 460);
+            Size = new Size(500, 400);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            BackColor = Color.White;
+            BackColor = AppTheme.ContentBg;
             Padding = new Padding(24, 20, 24, 20);
 
             int y = 24;

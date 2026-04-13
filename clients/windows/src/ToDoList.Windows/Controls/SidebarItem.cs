@@ -9,12 +9,6 @@ namespace ToDoList.Windows.Controls
 {
     public class SidebarItem : Control
     {
-        private static readonly Color NormalBg = Color.FromArgb(247, 247, 247);
-        private static readonly Color HoverBg = Color.FromArgb(237, 237, 237);
-        private static readonly Color SelectedBg = Color.FromArgb(232, 240, 254);
-        private static readonly Color NormalFg = Color.FromArgb(60, 60, 60);
-        private static readonly Color SelectedFg = Color.FromArgb(53, 122, 232);
-
         private bool isHovered;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -57,7 +51,8 @@ namespace ToDoList.Windows.Controls
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             Rectangle rect = new Rectangle(2, 2, Width - 4, Height - 4);
-            Color bgColor = IsItemSelected ? SelectedBg : (isHovered ? HoverBg : NormalBg);
+            Color bgColor = IsItemSelected ? AppTheme.SidebarSelectedBg
+                : (isHovered ? AppTheme.SidebarHoverBg : AppTheme.SidebarBg);
 
             using GraphicsPath path = CreateRoundedRectangle(rect, 6);
             using SolidBrush bgBrush = new SolidBrush(bgColor);
@@ -65,7 +60,7 @@ namespace ToDoList.Windows.Controls
 
             // Draw text
             Font textFont = IsItemSelected ? new Font(Font, FontStyle.Bold) : Font;
-            Color textColor = IsItemSelected ? SelectedFg : NormalFg;
+            Color textColor = IsItemSelected ? AppTheme.SidebarSelectedText : AppTheme.TitleColor;
 
             using SolidBrush textBrush = new SolidBrush(textColor);
             RectangleF textRect = new RectangleF(16, 0, Width - 24, Height);

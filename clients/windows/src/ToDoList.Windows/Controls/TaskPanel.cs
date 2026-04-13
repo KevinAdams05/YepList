@@ -17,19 +17,12 @@ namespace ToDoList.Windows.Controls
 
         private bool isHovered;
         private bool isSelected;
+        private Point? dragStartPoint;
 
         public TodoItem Item { get; }
         public event EventHandler? CompletionToggled;
         public event EventHandler? TaskDoubleClicked;
-
-        // Colors
-        private static readonly Color HoverColor = Color.FromArgb(245, 245, 245);
-        private static readonly Color SelectedColor = Color.FromArgb(232, 240, 254);
-        private static readonly Color SelectedBorderColor = Color.FromArgb(66, 133, 244);
-        private static readonly Color CardBorderColor = Color.FromArgb(228, 228, 228);
-        private static readonly Color CompletedTextColor = Color.FromArgb(158, 158, 158);
-        private static readonly Color TitleColor = Color.FromArgb(32, 32, 32);
-        private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
+        public event EventHandler? DragInitiated;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsSelected
@@ -68,7 +61,7 @@ namespace ToDoList.Windows.Controls
             {
                 Text = item.Title,
                 Font = new Font("Segoe UI", 14f, item.IsCompleted ? FontStyle.Strikeout : FontStyle.Regular),
-                ForeColor = item.IsCompleted ? CompletedTextColor : TitleColor,
+                ForeColor = item.IsCompleted ? AppTheme.CompletedTextColor : AppTheme.TitleColor,
                 AutoSize = false,
                 Height = 28,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -94,7 +87,7 @@ namespace ToDoList.Windows.Controls
             {
                 Text = categoryName,
                 Font = new Font("Segoe UI", 9f),
-                ForeColor = categoryColor ?? SubtextColor,
+                ForeColor = categoryColor ?? AppTheme.SubtextColor,
                 AutoSize = true,
                 Cursor = Cursors.Hand,
                 UseCompatibleTextRendering = true,
@@ -106,7 +99,7 @@ namespace ToDoList.Windows.Controls
             Controls.Add(lblCategory);
             Controls.Add(lblDueDate);
 
-            // Hover events for all child controls
+            // Hover and drag events for all child controls
             foreach (Control child in Controls)
             {
                 if (child != checkBox)
@@ -115,11 +108,17 @@ namespace ToDoList.Windows.Controls
                     child.MouseLeave += (s, e) => { isHovered = false; Invalidate(); };
                     child.Click += (s, e) => OnClick(EventArgs.Empty);
                     child.DoubleClick += (s, e) => TaskDoubleClicked?.Invoke(this, EventArgs.Empty);
+                    child.MouseDown += OnDragMouseDown;
+                    child.MouseMove += OnDragMouseMove;
+                    child.MouseUp += OnDragMouseUp;
                 }
             }
 
             MouseEnter += (s, e) => { isHovered = true; Invalidate(); };
             MouseLeave += (s, e) => { isHovered = false; Invalidate(); };
+            MouseDown += OnDragMouseDown;
+            MouseMove += OnDragMouseMove;
+            MouseUp += OnDragMouseUp;
             DoubleClick += (s, e) => TaskDoubleClicked?.Invoke(this, EventArgs.Empty);
         }
 
@@ -164,8 +163,9 @@ namespace ToDoList.Windows.Controls
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             Rectangle rect = new Rectangle(4, 2, Width - 8, Height - 4);
-            Color bgColor = isSelected ? SelectedColor : (isHovered ? HoverColor : Color.White);
-            Color borderColor = isSelected ? SelectedBorderColor : CardBorderColor;
+            Color bgColor = isSelected ? AppTheme.CardSelectedColor
+                : (isHovered ? AppTheme.CardHoverColor : AppTheme.CardBg);
+            Color borderColor = isSelected ? AppTheme.CardSelectedBorderColor : AppTheme.CardBorderColor;
 
             using GraphicsPath path = CreateRoundedRectangle(rect, 8);
             using SolidBrush bgBrush = new SolidBrush(bgColor);
@@ -188,24 +188,54 @@ namespace ToDoList.Windows.Controls
             return path;
         }
 
+        private void OnDragMouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                dragStartPoint = (sender is Control c) ? c.PointToScreen(e.Location) : PointToScreen(e.Location);
+            }
+        }
+
+        private void OnDragMouseMove(object? sender, MouseEventArgs e)
+        {
+            if (dragStartPoint == null || e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            Point screenPos = (sender is Control c) ? c.PointToScreen(e.Location) : PointToScreen(e.Location);
+            if (Math.Abs(screenPos.X - dragStartPoint.Value.X) > SystemInformation.DragSize.Width ||
+                Math.Abs(screenPos.Y - dragStartPoint.Value.Y) > SystemInformation.DragSize.Height)
+            {
+                dragStartPoint = null;
+                DragInitiated?.Invoke(this, EventArgs.Empty);
+                DoDragDrop(this, DragDropEffects.Move);
+            }
+        }
+
+        private void OnDragMouseUp(object? sender, MouseEventArgs e)
+        {
+            dragStartPoint = null;
+        }
+
         private static Color GetDueDateColor(TodoItem item)
         {
             if (item.IsCompleted || !item.DueDate.HasValue)
             {
-                return SubtextColor;
+                return AppTheme.SubtextColor;
             }
 
             if (item.DueDate.Value.Date < DateTime.Today)
             {
-                return Color.FromArgb(211, 47, 47); // Red for overdue
+                return AppTheme.OverdueColor;
             }
 
             if (item.DueDate.Value.Date == DateTime.Today)
             {
-                return Color.FromArgb(245, 124, 0); // Orange for today
+                return AppTheme.DueTodayColor;
             }
 
-            return SubtextColor;
+            return AppTheme.SubtextColor;
         }
     }
 }

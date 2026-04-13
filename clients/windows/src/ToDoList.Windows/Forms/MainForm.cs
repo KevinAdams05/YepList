@@ -35,16 +35,6 @@ namespace ToDoList.Windows.Forms
 
         private readonly TodoApiClient apiClient;
 
-        // Colors
-        private static readonly Color SidebarBg = Color.FromArgb(247, 247, 247);
-        private static readonly Color SidebarSelectedBg = Color.FromArgb(232, 240, 254);
-        private static readonly Color SidebarSelectedText = Color.FromArgb(53, 122, 232);
-        private static readonly Color SidebarHoverBg = Color.FromArgb(237, 237, 237);
-        private static readonly Color HeaderBg = Color.FromArgb(250, 250, 250);
-        private static readonly Color ContentBg = Color.White;
-        private static readonly Color BorderColor = Color.FromArgb(222, 222, 222);
-        private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
-
         // Controls
         private Panel sidebarPanel = null!;
         private Panel listPanel = null!;
@@ -53,6 +43,7 @@ namespace ToDoList.Windows.Forms
         private Label lblHeaderTitle = null!;
         private Control[] headerButtons = null!;
         private Panel taskListPanel = null!;
+        private Panel dragIndicator = null!;
         private TextBox txtQuickAdd = null!;
         private Label lblStatus = null!;
         private System.Windows.Forms.Timer syncTimer = null!;
@@ -62,12 +53,13 @@ namespace ToDoList.Windows.Forms
         private List<Category> categories = new();
         private List<TodoItem> currentItems = new();
         private long selectedListId = -1;
-        private TaskPanel? selectedTaskPanel;
+        private List<TaskPanel> selectedTaskPanels = new();
 
         public MainForm(TodoApiClient apiClient)
         {
             this.apiClient = apiClient;
             InitializeComponents();
+            AppTheme.StyleForm(this);
             SetupSyncTimer();
         }
 
@@ -77,7 +69,7 @@ namespace ToDoList.Windows.Forms
             Size = new Size(1100, 700);
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(800, 500);
-            BackColor = ContentBg;
+            BackColor = AppTheme.ContentBg;
 
             string iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
             if (File.Exists(iconPath))
@@ -90,23 +82,39 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Left,
                 Width = 240,
-                BackColor = SidebarBg
+                BackColor = AppTheme.SidebarBg
             };
+
+            // Sidebar logo
+            PictureBox logoBox = new PictureBox
+            {
+                Dock = DockStyle.Top,
+                Height = 48,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = AppTheme.SidebarBg,
+                Padding = new Padding(40, 10, 40, 4)
+            };
+
+            string logoPath = Path.Combine(AppContext.BaseDirectory, AppTheme.LogoFileName);
+            if (File.Exists(logoPath))
+            {
+                logoBox.Image = Image.FromFile(logoPath);
+            }
 
             // Sidebar header
             Panel sidebarHeader = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 56,
-                BackColor = SidebarBg,
+                Height = 40,
+                BackColor = AppTheme.SidebarBg,
                 Padding = new Padding(16, 0, 16, 0)
             };
 
             Label lblSidebarTitle = new Label
             {
                 Text = "Lists",
-                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(32, 32, 32),
+                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                ForeColor = AppTheme.TitleColor,
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleLeft,
                 UseCompatibleTextRendering = true
@@ -118,7 +126,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
-                BackColor = SidebarBg,
+                BackColor = AppTheme.SidebarBg,
                 Padding = new Padding(8, 4, 8, 4)
             };
 
@@ -127,7 +135,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Bottom,
                 Height = 90,
-                BackColor = SidebarBg,
+                BackColor = AppTheme.SidebarBg,
                 Padding = new Padding(8, 8, 8, 8)
             };
 
@@ -136,8 +144,8 @@ namespace ToDoList.Windows.Forms
                 Text = "New List",
                 Dock = DockStyle.Top,
                 Height = 34,
-                NormalBackColor = SidebarBg,
-                HoverBackColor = SidebarHoverBg
+                NormalBackColor = AppTheme.SidebarBg,
+                HoverBackColor = AppTheme.SidebarHoverBg
             };
             btnNewList.Margin = new Padding(0, 0, 0, 4);
             btnNewList.Click += async (s, e) => await ManageListsAsync();
@@ -147,8 +155,8 @@ namespace ToDoList.Windows.Forms
                 Text = "Manage Categories",
                 Dock = DockStyle.Top,
                 Height = 34,
-                NormalBackColor = SidebarBg,
-                HoverBackColor = SidebarHoverBg
+                NormalBackColor = AppTheme.SidebarBg,
+                HoverBackColor = AppTheme.SidebarHoverBg
             };
             btnManageCategories.Click += async (s, e) => await ManageCategoriesAsync();
 
@@ -158,20 +166,21 @@ namespace ToDoList.Windows.Forms
             sidebarPanel.Controls.Add(listPanel);
             sidebarPanel.Controls.Add(sidebarBottom);
             sidebarPanel.Controls.Add(sidebarHeader);
+            sidebarPanel.Controls.Add(logoBox);
 
             // Sidebar border
             Panel sidebarBorder = new Panel
             {
                 Dock = DockStyle.Left,
                 Width = 1,
-                BackColor = BorderColor
+                BackColor = AppTheme.BorderColor
             };
 
             // ── Content area ───────────────────────────────────
             contentPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = ContentBg
+                BackColor = AppTheme.ContentBg
             };
 
             // Header bar
@@ -179,7 +188,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Top,
                 Height = 56,
-                BackColor = HeaderBg,
+                BackColor = AppTheme.HeaderBg,
                 Padding = new Padding(20, 0, 16, 0)
             };
 
@@ -187,7 +196,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Bottom,
                 Height = 1,
-                BackColor = BorderColor
+                BackColor = AppTheme.BorderColor
             };
             headerPanel.Controls.Add(headerBorder);
 
@@ -198,7 +207,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = "Tasks",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(32, 32, 32),
+                ForeColor = AppTheme.TitleColor,
                 Location = new Point(20, 0),
                 AutoSize = true,
                 Height = 56,
@@ -236,7 +245,7 @@ namespace ToDoList.Windows.Forms
             Panel taskListContainer = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = ContentBg,
+                BackColor = AppTheme.ContentBg,
                 Padding = new Padding(12, 8, 12, 8)
             };
 
@@ -244,12 +253,28 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
-                BackColor = ContentBg
+                BackColor = AppTheme.ContentBg,
+                AllowDrop = true
             };
             // Enable double buffering to prevent flicker during refreshes
             typeof(Panel).InvokeMember("DoubleBuffered",
                 BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
                 null, taskListPanel, new object[] { true });
+
+            taskListPanel.DragEnter += TaskListPanel_DragEnter;
+            taskListPanel.DragOver += TaskListPanel_DragOver;
+            taskListPanel.DragDrop += TaskListPanel_DragDrop;
+            taskListPanel.DragLeave += TaskListPanel_DragLeave;
+
+            // Drag indicator line
+            dragIndicator = new Panel
+            {
+                Height = 3,
+                BackColor = AppTheme.AccentBg,
+                Visible = false
+            };
+            taskListPanel.Controls.Add(dragIndicator);
+
             taskListContainer.Controls.Add(taskListPanel);
 
             // Status bar
@@ -257,14 +282,14 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Bottom,
                 Height = 30,
-                BackColor = HeaderBg
+                BackColor = AppTheme.HeaderBg
             };
 
             Panel statusBorder = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 1,
-                BackColor = BorderColor
+                BackColor = AppTheme.BorderColor
             };
             statusPanel.Controls.Add(statusBorder);
 
@@ -273,7 +298,7 @@ namespace ToDoList.Windows.Forms
                 Text = "Connecting...",
                 Dock = DockStyle.Fill,
                 Font = new Font("Segoe UI", 8.5f),
-                ForeColor = SubtextColor,
+                ForeColor = AppTheme.SubtextColor,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(16, 0, 0, 0),
                 UseCompatibleTextRendering = true
@@ -285,7 +310,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Bottom,
                 Height = 46,
-                BackColor = HeaderBg,
+                BackColor = AppTheme.HeaderBg,
                 Padding = new Padding(16, 8, 16, 8)
             };
 
@@ -293,7 +318,7 @@ namespace ToDoList.Windows.Forms
             {
                 Dock = DockStyle.Top,
                 Height = 1,
-                BackColor = BorderColor
+                BackColor = AppTheme.BorderColor
             };
             quickAddPanel.Controls.Add(quickAddBorder);
 
@@ -303,7 +328,8 @@ namespace ToDoList.Windows.Forms
                 Font = new Font("Segoe UI", 11f),
                 PlaceholderText = "Add a new task...",
                 BorderStyle = BorderStyle.None,
-                BackColor = HeaderBg
+                BackColor = AppTheme.HeaderBg,
+                ForeColor = AppTheme.TitleColor
             };
             txtQuickAdd.KeyDown += async (s, e) =>
             {
@@ -504,6 +530,29 @@ namespace ToDoList.Windows.Forms
                     _ = OnListSelectedAsync(listId);
                 };
 
+                // Right-click context menu
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.BackColor = AppTheme.HeaderBg;
+                menu.ForeColor = AppTheme.TitleColor;
+
+                ToolStripMenuItem renameItem = new ToolStripMenuItem("Rename");
+                renameItem.Click += (s, e) =>
+                {
+                    long listId = (long)row.Tag;
+                    _ = RenameListInlineAsync(listId);
+                };
+                menu.Items.Add(renameItem);
+
+                ToolStripMenuItem deleteItem = new ToolStripMenuItem("Delete");
+                deleteItem.Click += (s, e) =>
+                {
+                    long listId = (long)row.Tag;
+                    _ = DeleteListInlineAsync(listId);
+                };
+                menu.Items.Add(deleteItem);
+
+                row.ContextMenuStrip = menu;
+
                 listPanel.Controls.Add(row);
             }
 
@@ -516,7 +565,10 @@ namespace ToDoList.Windows.Forms
             BeginUpdate(taskListPanel);
             taskListPanel.SuspendLayout();
             taskListPanel.Controls.Clear();
-            selectedTaskPanel = null;
+            selectedTaskPanels.Clear();
+
+            // Re-add drag indicator
+            taskListPanel.Controls.Add(dragIndicator);
 
             // Add in reverse order because Dock.Top stacks bottom-up
             List<TodoItem> ordered = currentItems
@@ -564,20 +616,36 @@ namespace ToDoList.Windows.Forms
                 {
                     if (s is TaskPanel tp)
                     {
-                        selectedTaskPanel = tp;
+                        ClearSelection();
+                        tp.IsSelected = true;
+                        selectedTaskPanels.Add(tp);
                         await EditTaskAsync();
                     }
                 };
                 panel.Click += (s, e) =>
                 {
-                    if (selectedTaskPanel != null)
-                    {
-                        selectedTaskPanel.IsSelected = false;
-                    }
-
                     TaskPanel tp = (TaskPanel)s!;
-                    tp.IsSelected = true;
-                    selectedTaskPanel = tp;
+                    bool ctrlHeld = (ModifierKeys & Keys.Control) != 0;
+
+                    if (ctrlHeld)
+                    {
+                        if (tp.IsSelected)
+                        {
+                            tp.IsSelected = false;
+                            selectedTaskPanels.Remove(tp);
+                        }
+                        else
+                        {
+                            tp.IsSelected = true;
+                            selectedTaskPanels.Add(tp);
+                        }
+                    }
+                    else
+                    {
+                        ClearSelection();
+                        tp.IsSelected = true;
+                        selectedTaskPanels.Add(tp);
+                    }
                 };
 
                 taskListPanel.Controls.Add(panel);
@@ -684,11 +752,12 @@ namespace ToDoList.Windows.Forms
 
         private async Task EditTaskAsync()
         {
-            TodoItem? item = GetSelectedItem();
-            if (item == null)
+            if (selectedTaskPanels.Count != 1)
             {
                 return;
             }
+
+            TodoItem item = selectedTaskPanels[0].Item;
 
             using TaskEditForm form = new TaskEditForm(categories, item);
             if (form.ShowDialog(this) == DialogResult.OK)
@@ -714,22 +783,28 @@ namespace ToDoList.Windows.Forms
 
         private async Task DeleteTaskAsync()
         {
-            TodoItem? item = GetSelectedItem();
-            if (item == null)
+            List<TodoItem> items = selectedTaskPanels.Select(tp => tp.Item).ToList();
+            if (items.Count == 0)
             {
                 return;
             }
 
-            DialogResult result = MessageBox.Show(this,
-                $"Delete task \"{item.Title}\"?", "Confirm Delete",
+            string message = items.Count == 1
+                ? $"Delete task \"{items[0].Title}\"?"
+                : $"Delete {items.Count} selected tasks?";
+
+            DialogResult result = MessageBox.Show(this, message, "Confirm Delete",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
                 try
                 {
-                    await apiClient.DeleteItemAsync(item.ItemId);
-                    currentItems.Remove(item);
+                    foreach (TodoItem item in items)
+                    {
+                        await apiClient.DeleteItemAsync(item.ItemId);
+                        currentItems.Remove(item);
+                    }
                     RefreshTaskList();
                 }
                 catch (Exception ex)
@@ -739,9 +814,13 @@ namespace ToDoList.Windows.Forms
             }
         }
 
-        private TodoItem? GetSelectedItem()
+        private void ClearSelection()
         {
-            return selectedTaskPanel?.Item;
+            foreach (TaskPanel tp in selectedTaskPanels)
+            {
+                tp.IsSelected = false;
+            }
+            selectedTaskPanels.Clear();
         }
 
         // ── List / Category Management ──────────────────────────
@@ -760,6 +839,291 @@ namespace ToDoList.Windows.Forms
             form.ShowDialog(this);
             categories = await apiClient.GetCategoriesAsync();
             RefreshTaskList();
+        }
+
+        // ── Inline List Operations (right-click) ────────────────
+
+        private async Task RenameListInlineAsync(long listId)
+        {
+            TodoList? list = lists.FirstOrDefault(l => l.ListId == listId);
+            if (list == null)
+            {
+                return;
+            }
+
+            string? newName = ShowInputDialog("Rename List", "New name:", list.Name);
+            if (newName == null || string.IsNullOrWhiteSpace(newName))
+            {
+                return;
+            }
+
+            try
+            {
+                TodoList updated = await apiClient.UpdateListAsync(list.ListId, newName.Trim(), list.SortOrder);
+                list.Name = updated.Name;
+                RefreshSidebarLists();
+
+                if (list.ListId == selectedListId)
+                {
+                    lblHeaderTitle.Text = list.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error renaming list: {ex.Message}");
+            }
+        }
+
+        private async Task DeleteListInlineAsync(long listId)
+        {
+            TodoList? list = lists.FirstOrDefault(l => l.ListId == listId);
+            if (list == null)
+            {
+                return;
+            }
+
+            DialogResult result = MessageBox.Show(this,
+                $"Delete list \"{list.Name}\" and all its tasks?", "Confirm Delete",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                try
+                {
+                    await apiClient.DeleteListAsync(list.ListId);
+                    lists.Remove(list);
+                    RefreshSidebarLists();
+
+                    if (list.ListId == selectedListId)
+                    {
+                        selectedListId = -1;
+                        currentItems.Clear();
+                        RefreshTaskList();
+                        lblHeaderTitle.Text = "Tasks";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UpdateStatus($"Error deleting list: {ex.Message}");
+                }
+            }
+        }
+
+        private string? ShowInputDialog(string title, string prompt, string defaultValue)
+        {
+            using Form dialog = new Form
+            {
+                Text = title,
+                Size = new Size(380, 160),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = AppTheme.ContentBg
+            };
+
+            Label lblPrompt = new Label
+            {
+                Text = prompt,
+                Location = new Point(16, 16),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = AppTheme.TitleColor
+            };
+
+            TextBox txtInput = new TextBox
+            {
+                Text = defaultValue,
+                Location = new Point(16, 42),
+                Width = 330,
+                Font = new Font("Segoe UI", 10f),
+                BackColor = AppTheme.HeaderBg,
+                ForeColor = AppTheme.TitleColor
+            };
+
+            AccentButton btnOk = new AccentButton
+            {
+                Text = "OK",
+                Width = 80,
+                Location = new Point(180, 80)
+            };
+            btnOk.Click += (s, e) => { dialog.DialogResult = DialogResult.OK; };
+
+            FlatButton btnCancel = new FlatButton
+            {
+                Text = "Cancel",
+                Width = 80,
+                Location = new Point(266, 80)
+            };
+            btnCancel.Click += (s, e) => { dialog.DialogResult = DialogResult.Cancel; };
+
+            dialog.Controls.AddRange(new Control[] { lblPrompt, txtInput, btnOk, btnCancel });
+            AppTheme.StyleForm(dialog);
+            dialog.AcceptButton = null; // We handle Enter manually
+            txtInput.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.SuppressKeyPress = true;
+                    dialog.DialogResult = DialogResult.OK;
+                }
+            };
+
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                return txtInput.Text;
+            }
+
+            return null;
+        }
+
+        // ── Drag-and-Drop Reordering ────────────────────────────
+
+        private void TaskListPanel_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetDataPresent(typeof(TaskPanel)) == true)
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+        }
+
+        private void TaskListPanel_DragOver(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetDataPresent(typeof(TaskPanel)) != true)
+            {
+                return;
+            }
+
+            e.Effect = DragDropEffects.Move;
+            Point clientPoint = taskListPanel.PointToClient(new Point(e.X, e.Y));
+            int dropIndex = GetDropIndex(clientPoint);
+
+            // Position the drag indicator
+            int indicatorY = GetIndicatorY(dropIndex);
+            dragIndicator.SetBounds(8, indicatorY, taskListPanel.ClientSize.Width - 16, 3);
+            dragIndicator.Visible = true;
+            dragIndicator.BringToFront();
+        }
+
+        private void TaskListPanel_DragLeave(object? sender, EventArgs e)
+        {
+            dragIndicator.Visible = false;
+        }
+
+        private void TaskListPanel_DragDrop(object? sender, DragEventArgs e)
+        {
+            dragIndicator.Visible = false;
+
+            if (e.Data?.GetData(typeof(TaskPanel)) is not TaskPanel draggedPanel)
+            {
+                return;
+            }
+
+            Point clientPoint = taskListPanel.PointToClient(new Point(e.X, e.Y));
+            int dropIndex = GetDropIndex(clientPoint);
+
+            // Build the visual order of task panels (top to bottom)
+            List<TaskPanel> panels = GetTaskPanelsInOrder();
+            int currentIndex = panels.IndexOf(draggedPanel);
+            if (currentIndex < 0 || currentIndex == dropIndex)
+            {
+                return;
+            }
+
+            // Move the item in the ordered list
+            panels.RemoveAt(currentIndex);
+            if (dropIndex > currentIndex)
+            {
+                dropIndex--;
+            }
+            if (dropIndex > panels.Count)
+            {
+                dropIndex = panels.Count;
+            }
+            panels.Insert(dropIndex, draggedPanel);
+
+            // Assign new sort orders and update in-memory items
+            for (int i = 0; i < panels.Count; i++)
+            {
+                panels[i].Item.SortOrder = i;
+            }
+
+            // Persist to server
+            _ = SaveReorderAsync();
+
+            // Refresh the display
+            RefreshTaskList();
+        }
+
+        private List<TaskPanel> GetTaskPanelsInOrder()
+        {
+            // Controls are docked Top in reverse add order, so iterate and collect TaskPanels
+            List<TaskPanel> panels = new();
+            foreach (Control c in taskListPanel.Controls)
+            {
+                if (c is TaskPanel tp)
+                {
+                    panels.Add(tp);
+                }
+            }
+            // With Dock.Top, the first control in Controls collection is the visual bottom.
+            // The visual top-to-bottom order is the reverse of the Controls collection.
+            panels.Reverse();
+            return panels;
+        }
+
+        private int GetDropIndex(Point clientPoint)
+        {
+            List<TaskPanel> panels = GetTaskPanelsInOrder();
+            int y = clientPoint.Y + taskListPanel.VerticalScroll.Value;
+
+            for (int i = 0; i < panels.Count; i++)
+            {
+                int panelMid = panels[i].Top + (panels[i].Height / 2);
+                if (y < panelMid)
+                {
+                    return i;
+                }
+            }
+
+            return panels.Count;
+        }
+
+        private int GetIndicatorY(int dropIndex)
+        {
+            List<TaskPanel> panels = GetTaskPanelsInOrder();
+
+            if (panels.Count == 0)
+            {
+                return 0;
+            }
+
+            if (dropIndex >= panels.Count)
+            {
+                return panels[panels.Count - 1].Bottom;
+            }
+
+            return panels[dropIndex].Top;
+        }
+
+        private async Task SaveReorderAsync()
+        {
+            if (selectedListId < 0)
+            {
+                return;
+            }
+
+            try
+            {
+                List<(long ItemId, int SortOrder)> entries = currentItems
+                    .Select(i => (i.ItemId, i.SortOrder))
+                    .ToList();
+                await apiClient.ReorderItemsAsync(selectedListId, entries);
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error saving order: {ex.Message}");
+            }
         }
     }
 }

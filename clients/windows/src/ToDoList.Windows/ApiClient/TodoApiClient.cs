@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -129,6 +130,17 @@ namespace ToDoList.Windows.ApiClient
         public async Task DeleteItemAsync(long itemId)
         {
             HttpResponseMessage response = await httpClient.DeleteAsync($"api/items/{itemId}");
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task ReorderItemsAsync(long listId, List<(long ItemId, int SortOrder)> items)
+        {
+            var body = new
+            {
+                items = items.Select(i => new { itemId = i.ItemId, sortOrder = i.SortOrder }).ToList()
+            };
+            HttpResponseMessage response = await httpClient.PutAsJsonAsync(
+                $"api/lists/{listId}/items/reorder", body);
             response.EnsureSuccessStatusCode();
         }
 

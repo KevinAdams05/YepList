@@ -8,10 +8,6 @@ namespace ToDoList.Windows.Controls
 {
     public class LargeCheckBox : Control
     {
-        private static readonly Color BorderColor = Color.FromArgb(180, 180, 180);
-        private static readonly Color CheckedBg = Color.FromArgb(53, 122, 232);
-        private static readonly Color HoverBorder = Color.FromArgb(53, 122, 232);
-
         private bool isChecked;
         private bool isHovered;
 
@@ -82,7 +78,7 @@ namespace ToDoList.Windows.Controls
             if (isChecked)
             {
                 // Filled blue background
-                using SolidBrush bgBrush = new SolidBrush(CheckedBg);
+                using SolidBrush bgBrush = new SolidBrush(AppTheme.CheckboxCheckedBg);
                 g.FillPath(bgBrush, path);
 
                 // White checkmark
@@ -95,16 +91,16 @@ namespace ToDoList.Windows.Controls
                 float cy = y + boxSize * 0.5f;
                 float mx = x + boxSize * 0.42f;
                 float my = y + boxSize * 0.72f;
-                float ex = x + boxSize * 0.78f;
+                float ex2 = x + boxSize * 0.78f;
                 float ey = y + boxSize * 0.28f;
 
                 g.DrawLine(checkPen, cx, cy, mx, my);
-                g.DrawLine(checkPen, mx, my, ex, ey);
+                g.DrawLine(checkPen, mx, my, ex2, ey);
             }
             else
             {
                 // Empty box with border
-                Color border = isHovered ? HoverBorder : BorderColor;
+                Color border = isHovered ? AppTheme.CheckboxHoverBorder : AppTheme.CheckboxBorderColor;
                 using Pen borderPen = new Pen(border, 2f);
                 g.DrawPath(borderPen, path);
             }

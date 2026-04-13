@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Forms;
+using Krypton.Toolkit;
 using ToDoList.Windows.ApiClient;
 using ToDoList.Windows.Forms;
 
@@ -9,10 +10,19 @@ namespace ToDoList.Windows
 {
     static class Program
     {
+        private static KryptonManager? kryptonManager;
+
         [STAThread]
         static void Main()
         {
             ApplicationConfiguration.Initialize();
+
+            // Set Krypton theme globally before creating any forms
+            kryptonManager = new KryptonManager();
+            if (AppTheme.IsDark)
+            {
+                kryptonManager.GlobalPaletteMode = PaletteMode.Office2007Black;
+            }
 
             string? serverUrl = LoadServerUrl();
             if (string.IsNullOrEmpty(serverUrl))

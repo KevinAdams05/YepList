@@ -130,6 +130,19 @@ namespace ToDoList.Data.Repositories
             return rowsAffected > 0;
         }
 
+        public async Task ReorderAsync(IEnumerable<(long ItemId, int SortOrder)> items)
+        {
+            using IDbConnection conn = connectionFactory.CreateConnection();
+            conn.Open();
+
+            foreach (var item in items)
+            {
+                await conn.ExecuteAsync(
+                    "UPDATE todo_item SET sort_order = @SortOrder WHERE item_id = @ItemId",
+                    new { item.ItemId, item.SortOrder });
+            }
+        }
+
         public async Task<IEnumerable<TodoItem>> GetModifiedSinceAsync(DateTime since)
         {
             using IDbConnection conn = connectionFactory.CreateConnection();

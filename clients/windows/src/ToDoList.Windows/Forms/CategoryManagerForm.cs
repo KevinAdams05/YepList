@@ -14,7 +14,7 @@ namespace ToDoList.Windows.Forms
     {
         private readonly TodoApiClient apiClient;
 
-        private KryptonDataGridView gridCategories = null!;
+        private DataGridView gridCategories = null!;
         private KryptonTextBox txtName = null!;
         private KryptonTextBox txtColor = null!;
         private Panel colorPreview = null!;
@@ -32,6 +32,7 @@ namespace ToDoList.Windows.Forms
             this.categories = categories.ToList();
             InitializeComponents();
             RefreshGrid();
+            AppTheme.StyleForm(this);
         }
 
         private void InitializeComponents()
@@ -42,13 +43,9 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            BackColor = Color.White;
+            BackColor = AppTheme.ContentBg;
 
-            // Grid
-            KryptonManager kryptonManager = new KryptonManager();
-            kryptonManager.GlobalPaletteMode = PaletteMode.ProfessionalOffice2003;
-
-            gridCategories = new KryptonDataGridView
+            gridCategories = new DataGridView
             {
                 Location = new Point(20, 20),
                 Size = new Size(390, 240),
@@ -58,8 +55,18 @@ namespace ToDoList.Windows.Forms
                 MultiSelect = false,
                 ReadOnly = true,
                 RowHeadersVisible = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                BackgroundColor = AppTheme.InputBg,
+                GridColor = AppTheme.InputBorderColor,
+                BorderStyle = BorderStyle.FixedSingle,
+                EnableHeadersVisualStyles = false
             };
+            gridCategories.DefaultCellStyle.BackColor = AppTheme.InputBg;
+            gridCategories.DefaultCellStyle.ForeColor = AppTheme.TitleColor;
+            gridCategories.DefaultCellStyle.SelectionBackColor = AppTheme.CardSelectedColor;
+            gridCategories.DefaultCellStyle.SelectionForeColor = AppTheme.TitleColor;
+            gridCategories.ColumnHeadersDefaultCellStyle.BackColor = AppTheme.HeaderBg;
+            gridCategories.ColumnHeadersDefaultCellStyle.ForeColor = AppTheme.TitleColor;
 
             DataGridViewTextBoxColumn colName = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Name", FillWeight = 60 };
             DataGridViewTextBoxColumn colColor = new DataGridViewTextBoxColumn { Name = "Color", HeaderText = "Color", FillWeight = 40 };
@@ -83,7 +90,7 @@ namespace ToDoList.Windows.Forms
                 Location = new Point(20, 280),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5f),
-                ForeColor = Color.FromArgb(32, 32, 32)
+                ForeColor = AppTheme.TitleColor
             };
             txtName = new KryptonTextBox { Location = new Point(80, 276), Width = 330 };
             txtName.StateCommon.Border.Rounding = 4;
@@ -94,7 +101,7 @@ namespace ToDoList.Windows.Forms
                 Location = new Point(20, 320),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5f),
-                ForeColor = Color.FromArgb(32, 32, 32)
+                ForeColor = AppTheme.TitleColor
             };
             txtColor = new KryptonTextBox { Location = new Point(80, 316), Width = 210 };
             txtColor.StateCommon.Border.Rounding = 4;

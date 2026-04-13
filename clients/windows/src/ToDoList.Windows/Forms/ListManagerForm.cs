@@ -14,7 +14,7 @@ namespace ToDoList.Windows.Forms
     {
         private readonly TodoApiClient apiClient;
 
-        private KryptonListBox lstLists = null!;
+        private ListBox lstLists = null!;
         private KryptonTextBox txtName = null!;
         private Controls.FlatButton btnAdd = null!;
         private Controls.FlatButton btnRename = null!;
@@ -29,6 +29,7 @@ namespace ToDoList.Windows.Forms
             this.lists = lists.ToList();
             InitializeComponents();
             RefreshListBox();
+            AppTheme.StyleForm(this);
         }
 
         private void InitializeComponents()
@@ -39,12 +40,16 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            BackColor = Color.White;
+            BackColor = AppTheme.ContentBg;
 
-            lstLists = new KryptonListBox
+            lstLists = new ListBox
             {
                 Location = new Point(20, 20),
-                Size = new Size(270, 220)
+                Size = new Size(270, 220),
+                Font = new Font("Segoe UI", 10f),
+                BackColor = AppTheme.InputBg,
+                ForeColor = AppTheme.TitleColor,
+                BorderStyle = BorderStyle.FixedSingle
             };
             lstLists.SelectedIndexChanged += (s, e) =>
             {
@@ -54,10 +59,19 @@ namespace ToDoList.Windows.Forms
                 }
             };
 
+            Label lblName = new Label
+            {
+                Text = "Name",
+                Location = new Point(20, 256),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = AppTheme.TitleColor
+            };
+
             txtName = new KryptonTextBox
             {
-                Location = new Point(20, 252),
-                Width = 270
+                Location = new Point(80, 252),
+                Width = 210
             };
             txtName.StateCommon.Border.Rounding = 4;
 
@@ -73,7 +87,7 @@ namespace ToDoList.Windows.Forms
             btnClose = new Controls.AccentButton { Text = "Close", Width = 110, Location = new Point(308, 316) };
             btnClose.Click += (s, e) => { DialogResult = DialogResult.OK; };
 
-            Controls.AddRange(new Control[] { lstLists, txtName, btnAdd, btnRename, btnDelete, btnClose });
+            Controls.AddRange(new Control[] { lstLists, lblName, txtName, btnAdd, btnRename, btnDelete, btnClose });
         }
 
         private void RefreshListBox()

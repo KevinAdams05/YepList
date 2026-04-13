@@ -72,6 +72,15 @@ namespace ToDoList.Api.Controllers
             return Ok(MapToDto(item));
         }
 
+        [HttpPut("api/lists/{listId}/items/reorder")]
+        public async Task<IActionResult> Reorder(long listId, [FromBody] ReorderItemsRequest request)
+        {
+            var entries = request.Items.Select(e => (e.ItemId, e.SortOrder));
+            await itemRepository.ReorderAsync(entries);
+
+            return NoContent();
+        }
+
         [HttpDelete("api/items/{id}")]
         public async Task<IActionResult> Delete(long id)
         {

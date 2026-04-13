@@ -2,17 +2,15 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace ToDoList.Windows.Forms
 {
     public class AboutForm : Form
     {
-        private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
-
         public AboutForm()
         {
             InitializeComponents();
+            AppTheme.StyleForm(this);
         }
 
         private void InitializeComponents()
@@ -23,7 +21,7 @@ namespace ToDoList.Windows.Forms
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            BackColor = Color.White;
+            BackColor = AppTheme.ContentBg;
 
             // Logo
             PictureBox logo = new PictureBox
@@ -34,8 +32,7 @@ namespace ToDoList.Windows.Forms
                 BackColor = Color.Transparent
             };
 
-            string logoFile = IsWindowsDarkMode() ? "logo-dark.png" : "logo-light.png";
-            string logoPath = Path.Combine(AppContext.BaseDirectory, logoFile);
+            string logoPath = Path.Combine(AppContext.BaseDirectory, AppTheme.LogoFileName);
             if (File.Exists(logoPath))
             {
                 logo.Image = Image.FromFile(logoPath);
@@ -46,7 +43,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = "Version 1.0.0",
                 Font = new Font("Segoe UI", 9.5f),
-                ForeColor = SubtextColor,
+                ForeColor = AppTheme.SubtextColor,
                 Location = new Point(0, 100),
                 Size = new Size(480, 24),
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -58,7 +55,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = "by Kevin Adams",
                 Font = new Font("Segoe UI", 10f),
-                ForeColor = Color.FromArgb(60, 60, 60),
+                ForeColor = AppTheme.SubtextColor,
                 Location = new Point(0, 126),
                 Size = new Size(480, 24),
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -70,7 +67,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = "Licensed under the MIT License",
                 Font = new Font("Segoe UI", 10f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(32, 32, 32),
+                ForeColor = AppTheme.TitleColor,
                 Location = new Point(0, 164),
                 Size = new Size(480, 24),
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -82,7 +79,7 @@ namespace ToDoList.Windows.Forms
             {
                 Location = new Point(40, 200),
                 Size = new Size(400, 1),
-                BackColor = Color.FromArgb(222, 222, 222)
+                BackColor = AppTheme.BorderColor
             };
 
             // Credits header
@@ -90,7 +87,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = "Third-Party Libraries",
                 Font = new Font("Segoe UI", 10f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(32, 32, 32),
+                ForeColor = AppTheme.TitleColor,
                 Location = new Point(40, 216),
                 AutoSize = true,
                 BackColor = Color.Transparent
@@ -132,7 +129,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = library,
                 Font = new Font("Segoe UI", 9.5f),
-                ForeColor = Color.FromArgb(32, 32, 32),
+                ForeColor = AppTheme.TitleColor,
                 Location = new Point(0, y),
                 Size = new Size(180, 22),
                 BackColor = Color.Transparent
@@ -142,7 +139,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = license,
                 Font = new Font("Segoe UI", 9f),
-                ForeColor = Color.FromArgb(120, 120, 120),
+                ForeColor = AppTheme.SubtextColor,
                 Location = new Point(180, y),
                 Size = new Size(100, 22),
                 BackColor = Color.Transparent
@@ -152,7 +149,7 @@ namespace ToDoList.Windows.Forms
             {
                 Text = author,
                 Font = new Font("Segoe UI", 9f),
-                ForeColor = Color.FromArgb(120, 120, 120),
+                ForeColor = AppTheme.SubtextColor,
                 Location = new Point(280, y),
                 Size = new Size(120, 22),
                 BackColor = Color.Transparent
@@ -160,22 +157,6 @@ namespace ToDoList.Windows.Forms
 
             parent.Controls.AddRange(new Control[] { lblLib, lblLicense, lblAuthor });
             y += 28;
-        }
-
-        private static bool IsWindowsDarkMode()
-        {
-            try
-            {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(
-                    @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-                object? value = key?.GetValue("AppsUseLightTheme");
-
-                return value is int intVal && intVal == 0;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

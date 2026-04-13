@@ -13,13 +13,13 @@ namespace ToDoList.Windows.Controls
         private bool isPressed;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Color NormalBackColor { get; set; } = Color.FromArgb(240, 240, 240);
+        public Color NormalBackColor { get; set; } = AppTheme.ButtonNormalBg;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Color HoverBackColor { get; set; } = Color.FromArgb(225, 225, 225);
+        public Color HoverBackColor { get; set; } = AppTheme.ButtonHoverBg;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Color PressedBackColor { get; set; } = Color.FromArgb(210, 210, 210);
+        public Color PressedBackColor { get; set; } = AppTheme.ButtonPressedBg;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int CornerRadius { get; set; } = 8;
@@ -38,7 +38,7 @@ namespace ToDoList.Windows.Controls
                 true);
 
             Font = new Font("Segoe UI", 9.5f);
-            ForeColor = Color.FromArgb(60, 60, 60);
+            ForeColor = AppTheme.ButtonForeColor;
             Cursor = Cursors.Hand;
             Height = 34;
             BackColor = Color.Transparent;
@@ -124,9 +124,9 @@ namespace ToDoList.Windows.Controls
     {
         public AccentButton()
         {
-            NormalBackColor = Color.FromArgb(53, 122, 232);
-            HoverBackColor = Color.FromArgb(40, 100, 200);
-            PressedBackColor = Color.FromArgb(30, 80, 170);
+            NormalBackColor = AppTheme.AccentBg;
+            HoverBackColor = AppTheme.AccentHoverBg;
+            PressedBackColor = AppTheme.AccentPressedBg;
             ForeColor = Color.White;
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
         }
