@@ -222,7 +222,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                AppTheme.ShowMessage(this, $"Error: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -252,7 +252,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Error: {ex.Message}", "Error",
+                AppTheme.ShowMessage(this, $"Error: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -265,7 +265,7 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            DialogResult result = MessageBox.Show(this,
+            DialogResult result = AppTheme.ShowMessage(this,
                 $"Delete category \"{selected.Name}\"? Tasks using this category will become uncategorized.",
                 "Confirm Delete",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);

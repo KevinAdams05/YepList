@@ -553,8 +553,7 @@ namespace ToDoList.Windows.Forms
 
                 // Right-click context menu
                 ContextMenuStrip menu = new ContextMenuStrip();
-                menu.BackColor = AppTheme.HeaderBg;
-                menu.ForeColor = AppTheme.TitleColor;
+                AppTheme.StyleContextMenu(menu);
 
                 ToolStripMenuItem renameItem = new ToolStripMenuItem("Rename");
                 renameItem.Click += (s, e) =>
@@ -747,7 +746,7 @@ namespace ToDoList.Windows.Forms
         {
             if (selectedListId < 0)
             {
-                MessageBox.Show(this, "Please select a list first.", "No List Selected",
+                AppTheme.ShowMessage(this, "Please select a list first.", "No List Selected",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 return;
@@ -814,7 +813,7 @@ namespace ToDoList.Windows.Forms
                 ? $"Delete task \"{items[0].Title}\"?"
                 : $"Delete {items.Count} selected tasks?";
 
-            DialogResult result = MessageBox.Show(this, message, "Confirm Delete",
+            DialogResult result = AppTheme.ShowMessage(this, message, "Confirm Delete",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
@@ -903,7 +902,7 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            DialogResult result = MessageBox.Show(this,
+            DialogResult result = AppTheme.ShowMessage(this,
                 $"Delete list \"{list.Name}\" and all its tasks?", "Confirm Delete",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 

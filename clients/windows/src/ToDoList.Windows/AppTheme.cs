@@ -268,5 +268,110 @@ namespace ToDoList.Windows
                 }
             }
         }
+
+        /// <summary>
+        /// Applies dark theme to a ContextMenuStrip.
+        /// </summary>
+        public static void StyleContextMenu(ContextMenuStrip menu)
+        {
+            if (!IsDark)
+            {
+                return;
+            }
+
+            menu.Renderer = new ToolStripProfessionalRenderer(new DarkMenuColorTable());
+            menu.ForeColor = TitleColor;
+        }
+
+        /// <summary>
+        /// Shows a themed message dialog that respects dark mode.
+        /// </summary>
+        public static DialogResult ShowMessage(IWin32Window? owner, string text, string caption,
+            MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.None)
+        {
+            if (!IsDark)
+            {
+                return MessageBox.Show(owner, text, caption, buttons, icon);
+            }
+
+            using Form dialog = new Form
+            {
+                Text = caption,
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = ContentBg,
+                Size = new Size(420, 180)
+            };
+
+            Label lblMessage = new Label
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 10f),
+                ForeColor = TitleColor,
+                Location = new Point(24, 24),
+                Size = new Size(360, 60)
+            };
+
+            int btnY = 100;
+
+            if (buttons == MessageBoxButtons.YesNo)
+            {
+                Button btnYes = CreateDialogButton("Yes", new Point(220, btnY), true);
+                btnYes.Click += (s, e) => { dialog.DialogResult = DialogResult.Yes; };
+
+                Button btnNo = CreateDialogButton("No", new Point(310, btnY), false);
+                btnNo.Click += (s, e) => { dialog.DialogResult = DialogResult.No; };
+
+                dialog.Controls.AddRange(new Control[] { lblMessage, btnYes, btnNo });
+            }
+            else
+            {
+                Button btnOk = CreateDialogButton("OK", new Point(310, btnY), true);
+                btnOk.Click += (s, e) => { dialog.DialogResult = DialogResult.OK; };
+
+                dialog.Controls.AddRange(new Control[] { lblMessage, btnOk });
+            }
+
+            StyleForm(dialog);
+            return dialog.ShowDialog(owner);
+        }
+
+        private static Button CreateDialogButton(string text, Point location, bool isAccent)
+        {
+            Button btn = new Button
+            {
+                Text = text,
+                Width = 80,
+                Height = 32,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = isAccent ? AccentBg : ButtonNormalBg,
+                ForeColor = isAccent ? Color.White : ButtonForeColor,
+                Font = new Font("Segoe UI", 9.5f),
+                Cursor = Cursors.Hand
+            };
+            btn.FlatAppearance.BorderSize = 0;
+
+            return btn;
+        }
+
+        private class DarkMenuColorTable : ProfessionalColorTable
+        {
+            public override Color ToolStripDropDownBackground => Color.FromArgb(45, 45, 45);
+            public override Color MenuBorder => Color.FromArgb(70, 70, 70);
+            public override Color MenuItemBorder => Color.FromArgb(70, 100, 160);
+            public override Color MenuItemSelected => Color.FromArgb(60, 60, 60);
+            public override Color MenuItemSelectedGradientBegin => Color.FromArgb(60, 60, 60);
+            public override Color MenuItemSelectedGradientEnd => Color.FromArgb(60, 60, 60);
+            public override Color MenuItemPressedGradientBegin => Color.FromArgb(65, 65, 65);
+            public override Color MenuItemPressedGradientEnd => Color.FromArgb(65, 65, 65);
+            public override Color ImageMarginGradientBegin => Color.FromArgb(45, 45, 45);
+            public override Color ImageMarginGradientMiddle => Color.FromArgb(45, 45, 45);
+            public override Color ImageMarginGradientEnd => Color.FromArgb(45, 45, 45);
+            public override Color SeparatorDark => Color.FromArgb(70, 70, 70);
+            public override Color SeparatorLight => Color.FromArgb(50, 50, 50);
+        }
     }
 }

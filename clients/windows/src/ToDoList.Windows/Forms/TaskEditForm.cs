@@ -144,7 +144,7 @@ namespace ToDoList.Windows.Forms
             {
                 if (string.IsNullOrWhiteSpace(txtTitle.Text))
                 {
-                    MessageBox.Show(this, "Title is required.", "Validation",
+                    AppTheme.ShowMessage(this, "Title is required.", "Validation",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     DialogResult = DialogResult.None;
                     return;
