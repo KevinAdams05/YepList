@@ -1,0 +1,112 @@
+package com.yeplist.app.ui
+
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import androidx.activity.viewModels
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.yeplist.app.R
+import com.yeplist.app.databinding.ActivityMainBinding
+import com.yeplist.app.ui.category.CategoryManagerDialogFragment
+import com.yeplist.app.ui.list.ListSidebarFragment
+import com.yeplist.app.ui.settings.SettingsDialogFragment
+import com.yeplist.app.ui.task.TaskListFragment
+import kotlinx.coroutines.launch
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private val viewModel: MainViewModel by viewModels()
+
+    private var sidebarFragment: ListSidebarFragment? = null
+    private var taskListFragment: TaskListFragment? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setSupportActionBar(binding.toolbar)
+
+        // Drawer toggle
+        val toggle = ActionBarDrawerToggle(
+            this, binding.drawerLayout, binding.toolbar,
+            R.string.app_name, R.string.app_name
+        )
+        binding.drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        // Set up fragments
+        if (savedInstanceState == null) {
+            sidebarFragment = ListSidebarFragment().apply {
+                onListSelected = { _ -> binding.drawerLayout.closeDrawers() }
+                onManageCategoriesClicked = {
+                    CategoryManagerDialogFragment().show(supportFragmentManager, "category_manager")
+                }
+            }
+            taskListFragment = TaskListFragment()
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.drawerContainer, sidebarFragment!!)
+                .replace(R.id.fragmentContainer, taskListFragment!!)
+                .commit()
+        } else {
+            sidebarFragment = supportFragmentManager.findFragmentById(R.id.drawerContainer) as? ListSidebarFragment
+            taskListFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? TaskListFragment
+        }
+
+        // Update toolbar title when selected list changes
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.selectedListId.collect { listId ->
+                        val lists = viewModel.lists.value
+                        val selectedList = lists.firstOrNull { it.listId == listId }
+                        supportActionBar?.title = selectedList?.name ?: getString(R.string.app_name)
+                    }
+                }
+                launch {
+                    viewModel.lists.collect { lists ->
+                        val selectedList = lists.firstOrNull { it.listId == viewModel.selectedListId.value }
+                        supportActionBar?.title = selectedList?.name ?: getString(R.string.app_name)
+                    }
+                }
+            }
+        }
+
+        // Trigger initial sync
+        viewModel.sync()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                viewModel.sync()
+                true
+            }
+            R.id.action_settings -> {
+                SettingsDialogFragment().show(supportFragmentManager, "settings")
+                true
+            }
+            R.id.action_about -> {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.app_name)
+                    .setMessage("YepList v${packageManager.getPackageInfo(packageName, 0).versionName}")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+}

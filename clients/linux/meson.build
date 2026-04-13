@@ -1,5 +1,5 @@
 project('yep-list', 'vala', 'c',
-  version: '1.0.0',
+  version: '0.4.1',
   meson_version: '>= 0.62.0',
 )
 

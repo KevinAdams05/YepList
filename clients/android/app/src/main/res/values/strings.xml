@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YepList</string>
+    <string name="add_task">Add Task</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="delete_task">Delete</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="title">Title</string>
+    <string name="notes">Notes</string>
+    <string name="category">Category</string>
+    <string name="due_date">Due Date</string>
+    <string name="none">None</string>
+    <string name="new_list">New List</string>
+    <string name="rename_list">Rename</string>
+    <string name="delete_list">Delete</string>
+    <string name="set_as_default">Set as Default</string>
+    <string name="clear_default">Clear Default</string>
+    <string name="manage_categories">Manage Categories</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="refresh">Refresh</string>
+    <string name="quick_add_hint">Add a new task\u2026</string>
+    <string name="server_url">Server URL</string>
+    <string name="connected">Connected</string>
+    <string name="offline">Offline \u2014 changes saved locally</string>
+    <string name="syncing">Syncing\u2026</string>
+    <string name="no_lists">No lists yet</string>
+    <string name="no_tasks">No tasks in this list</string>
+    <string name="delete_list_confirm">Delete list \"%s\" and all its tasks?</string>
+    <string name="delete_task_confirm_single">Delete this task?</string>
+    <string name="delete_task_confirm_multiple">Delete %d selected tasks?</string>
+    <string name="widget_description">Shows tasks from a YepList list</string>
+    <string name="widget_list_not_found">List not found. Tap to reconfigure.</string>
+    <string name="widget_choose_list">Choose a list</string>
+    <string name="list_name">List name</string>
+    <string name="category_name">Category name</string>
+    <string name="color">Color</string>
+    <string name="add_category">Add Category</string>
+    <string name="edit_category">Edit Category</string>
+    <string name="delete_category">Delete Category</string>
+    <string name="task_deleted">"%s" deleted</string>
+</resources>

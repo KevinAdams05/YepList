@@ -41,7 +41,7 @@ namespace ToDoList.Windows.Forms
             // Version
             Label lblVersion = new Label
             {
-                Text = "Version 1.0.0",
+                Text = "Version 0.4.1",
                 Font = new Font("Segoe UI", 9.5f),
                 ForeColor = AppTheme.SubtextColor,
                 Location = new Point(0, 100),
