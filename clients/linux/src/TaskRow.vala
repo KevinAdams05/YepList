@@ -8,6 +8,10 @@ public class TaskRow : Gtk.Box {
 
     public signal void completion_toggled (TodoItem item);
 
+    public TodoItem? get_bound_item () {
+        return bound_item;
+    }
+
     public TaskRow () {
         Object (
             orientation: Gtk.Orientation.HORIZONTAL,

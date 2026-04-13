@@ -169,6 +169,27 @@ public class ApiClient : Object {
         yield delete_request_async ("api/items/%lld".printf (item_id));
     }
 
+    public async void reorder_items_async (int64 list_id,
+                                            GenericArray<TodoItem> items) throws Error {
+        var builder = new Json.Builder ();
+        builder.begin_object ();
+        builder.set_member_name ("items");
+        builder.begin_array ();
+        for (uint i = 0; i < items.length; i++) {
+            builder.begin_object ();
+            builder.set_member_name ("itemId");
+            builder.add_int_value (items[i].item_id);
+            builder.set_member_name ("sortOrder");
+            builder.add_int_value ((int64) i);
+            builder.end_object ();
+        }
+        builder.end_array ();
+        builder.end_object ();
+
+        yield put_async ("api/lists/%lld/items/reorder".printf (list_id),
+                         builder_to_string (builder));
+    }
+
     // ── Sync ──────────────────────────────────────────────
 
     public async SyncResponse sync_async () throws Error {

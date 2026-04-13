@@ -1,5 +1,6 @@
 public class TodoApp : Adw.Application {
     public static string server_url = "http://192.168.74.122:5000";
+    public static AppSettings app_settings;
 
     public TodoApp () {
         Object (
@@ -16,7 +17,7 @@ public class TodoApp : Adw.Application {
             "/usr/local/share/icons/hicolor/256x256/apps");
         Gtk.Window.set_default_icon_name ("com.github.kevinadams05.yeplist");
 
-        var win = new MainWindow (this);
+        var win = new MainWindow (this, app_settings);
         win.present ();
     }
 
@@ -74,11 +75,25 @@ public class TodoApp : Adw.Application {
     }
 
     public static int main (string[] args) {
-        // Check for server URL argument
+        // Load settings
+        app_settings = AppSettings.load ();
+
+        // Use server URL from settings if available
+        if (app_settings.server_url != "") {
+            server_url = app_settings.server_url;
+        }
+
+        // Check for server URL argument (overrides settings)
         for (int i = 0; i < args.length; i++) {
             if (args[i] == "--server" && i + 1 < args.length) {
                 server_url = args[i + 1];
             }
+        }
+
+        // Save server URL back to settings
+        if (app_settings.server_url != server_url) {
+            app_settings.server_url = server_url;
+            app_settings.save ();
         }
 
         var app = new TodoApp ();

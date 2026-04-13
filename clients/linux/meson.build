@@ -20,6 +20,7 @@ sources = files(
   'src/MainWindow.vala',
   'src/Models.vala',
   'src/ApiClient.vala',
+  'src/Settings.vala',
   'src/TaskRow.vala',
   'src/TaskEditDialog.vala',
   'src/ListSidebar.vala',
