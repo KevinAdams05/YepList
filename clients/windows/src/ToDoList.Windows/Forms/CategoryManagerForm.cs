@@ -17,12 +17,12 @@ namespace ToDoList.Windows.Forms
         private KryptonDataGridView gridCategories = null!;
         private KryptonTextBox txtName = null!;
         private KryptonTextBox txtColor = null!;
-        private KryptonButton btnPickColor = null!;
-        private KryptonButton btnAdd = null!;
-        private KryptonButton btnUpdate = null!;
-        private KryptonButton btnDelete = null!;
-        private KryptonButton btnClose = null!;
-        private KryptonPanel colorPreview = null!;
+        private Panel colorPreview = null!;
+        private Controls.FlatButton btnPickColor = null!;
+        private Controls.FlatButton btnAdd = null!;
+        private Controls.FlatButton btnUpdate = null!;
+        private Controls.FlatButton btnDelete = null!;
+        private Controls.AccentButton btnClose = null!;
 
         private List<Category> categories;
 
@@ -37,7 +37,7 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "Manage Categories";
-            Size = new Size(520, 420);
+            Size = new Size(560, 460);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -46,8 +46,8 @@ namespace ToDoList.Windows.Forms
             // Grid
             gridCategories = new KryptonDataGridView
             {
-                Location = new Point(12, 12),
-                Size = new Size(370, 220),
+                Location = new Point(20, 20),
+                Size = new Size(390, 240),
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
@@ -73,21 +73,25 @@ namespace ToDoList.Windows.Forms
             };
 
             // Input fields
-            KryptonLabel lblName = new KryptonLabel { Text = "Name:", Location = new Point(12, 248), AutoSize = true };
-            txtName = new KryptonTextBox { Location = new Point(80, 246), Width = 302 };
+            KryptonLabel lblName = new KryptonLabel { Text = "Name", Location = new Point(20, 278), AutoSize = true };
+            lblName.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
+            txtName = new KryptonTextBox { Location = new Point(90, 276), Width = 320 };
+            txtName.StateCommon.Border.Rounding = 4;
 
-            KryptonLabel lblColor = new KryptonLabel { Text = "Color:", Location = new Point(12, 282), AutoSize = true };
-            txtColor = new KryptonTextBox { Location = new Point(80, 280), Width = 180 };
+            KryptonLabel lblColor = new KryptonLabel { Text = "Color", Location = new Point(20, 318), AutoSize = true };
+            lblColor.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
+            txtColor = new KryptonTextBox { Location = new Point(90, 316), Width = 200 };
+            txtColor.StateCommon.Border.Rounding = 4;
             txtColor.TextChanged += (s, e) => UpdateColorPreview();
 
-            colorPreview = new KryptonPanel
+            colorPreview = new Panel
             {
-                Location = new Point(268, 280),
-                Size = new Size(28, 24)
+                Location = new Point(298, 316),
+                Size = new Size(28, 26),
+                BackColor = Color.Gray
             };
-            colorPreview.StateCommon.Color1 = Color.Gray;
 
-            btnPickColor = new KryptonButton { Text = "...", Location = new Point(302, 280), Width = 32 };
+            btnPickColor = new Controls.FlatButton { Text = "...", Width = 36, Height = 26, Location = new Point(332, 316) };
             btnPickColor.Click += (s, e) =>
             {
                 using ColorDialog dlg = new ColorDialog();
@@ -99,7 +103,7 @@ namespace ToDoList.Windows.Forms
                     }
                     catch
                     {
-                        // Ignore invalid color
+                        // Ignore
                     }
                 }
                 if (dlg.ShowDialog(this) == DialogResult.OK)
@@ -109,16 +113,17 @@ namespace ToDoList.Windows.Forms
             };
 
             // Buttons
-            btnAdd = new KryptonButton { Text = "Add", Location = new Point(400, 12), Width = 100 };
-            btnUpdate = new KryptonButton { Text = "Update", Location = new Point(400, 48), Width = 100 };
-            btnDelete = new KryptonButton { Text = "Delete", Location = new Point(400, 84), Width = 100 };
-            btnClose = new KryptonButton { Text = "Close", Location = new Point(400, 340), Width = 100, DialogResult = DialogResult.OK };
-
+            btnAdd = new Controls.FlatButton { Text = "Add", Width = 110, Location = new Point(430, 20) };
             btnAdd.Click += async (s, e) => await AddCategoryAsync();
+
+            btnUpdate = new Controls.FlatButton { Text = "Update", Width = 110, Location = new Point(430, 60) };
             btnUpdate.Click += async (s, e) => await UpdateCategoryAsync();
+
+            btnDelete = new Controls.FlatButton { Text = "Delete", Width = 110, Location = new Point(430, 100) };
             btnDelete.Click += async (s, e) => await DeleteCategoryAsync();
 
-            CancelButton = btnClose;
+            btnClose = new Controls.AccentButton { Text = "Close", Width = 110, Location = new Point(430, 376) };
+            btnClose.Click += (s, e) => { DialogResult = DialogResult.OK; };
 
             Controls.AddRange(new Control[]
             {
@@ -146,7 +151,7 @@ namespace ToDoList.Windows.Forms
                     }
                     catch
                     {
-                        // Ignore invalid color
+                        // Invalid color
                     }
                 }
             }
@@ -156,11 +161,11 @@ namespace ToDoList.Windows.Forms
         {
             try
             {
-                colorPreview.StateCommon.Color1 = ColorTranslator.FromHtml(txtColor.Text);
+                colorPreview.BackColor = ColorTranslator.FromHtml(txtColor.Text);
             }
             catch
             {
-                colorPreview.StateCommon.Color1 = Color.Gray;
+                colorPreview.BackColor = Color.Gray;
             }
         }
 

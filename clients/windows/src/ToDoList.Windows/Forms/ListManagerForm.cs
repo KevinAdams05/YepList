@@ -16,10 +16,10 @@ namespace ToDoList.Windows.Forms
 
         private KryptonListBox lstLists = null!;
         private KryptonTextBox txtName = null!;
-        private KryptonButton btnAdd = null!;
-        private KryptonButton btnRename = null!;
-        private KryptonButton btnDelete = null!;
-        private KryptonButton btnClose = null!;
+        private Controls.FlatButton btnAdd = null!;
+        private Controls.FlatButton btnRename = null!;
+        private Controls.FlatButton btnDelete = null!;
+        private Controls.AccentButton btnClose = null!;
 
         private List<TodoList> lists;
 
@@ -34,7 +34,7 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "Manage Lists";
-            Size = new Size(400, 360);
+            Size = new Size(440, 400);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -42,8 +42,8 @@ namespace ToDoList.Windows.Forms
 
             lstLists = new KryptonListBox
             {
-                Location = new Point(12, 12),
-                Size = new Size(250, 200)
+                Location = new Point(20, 20),
+                Size = new Size(270, 220)
             };
             lstLists.SelectedIndexChanged += (s, e) =>
             {
@@ -55,20 +55,22 @@ namespace ToDoList.Windows.Forms
 
             txtName = new KryptonTextBox
             {
-                Location = new Point(12, 222),
-                Width = 250
+                Location = new Point(20, 252),
+                Width = 270
             };
+            txtName.StateCommon.Border.Rounding = 4;
 
-            btnAdd = new KryptonButton { Text = "Add", Location = new Point(275, 12), Width = 100 };
-            btnRename = new KryptonButton { Text = "Rename", Location = new Point(275, 48), Width = 100 };
-            btnDelete = new KryptonButton { Text = "Delete", Location = new Point(275, 84), Width = 100 };
-            btnClose = new KryptonButton { Text = "Close", Location = new Point(275, 280), Width = 100, DialogResult = DialogResult.OK };
-
+            btnAdd = new Controls.FlatButton { Text = "Add", Width = 110, Location = new Point(308, 20) };
             btnAdd.Click += async (s, e) => await AddListAsync();
+
+            btnRename = new Controls.FlatButton { Text = "Rename", Width = 110, Location = new Point(308, 60) };
             btnRename.Click += async (s, e) => await RenameListAsync();
+
+            btnDelete = new Controls.FlatButton { Text = "Delete", Width = 110, Location = new Point(308, 100) };
             btnDelete.Click += async (s, e) => await DeleteListAsync();
 
-            CancelButton = btnClose;
+            btnClose = new Controls.AccentButton { Text = "Close", Width = 110, Location = new Point(308, 316) };
+            btnClose.Click += (s, e) => { DialogResult = DialogResult.OK; };
 
             Controls.AddRange(new Control[] { lstLists, txtName, btnAdd, btnRename, btnDelete, btnClose });
         }

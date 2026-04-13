@@ -14,8 +14,8 @@ namespace ToDoList.Windows.Forms
         private KryptonComboBox cboCategory = null!;
         private KryptonCheckBox chkHasDueDate = null!;
         private KryptonDateTimePicker dtpDueDate = null!;
-        private KryptonButton btnSave = null!;
-        private KryptonButton btnCancel = null!;
+        private Controls.AccentButton btnSave = null!;
+        private Controls.FlatButton btnCancel = null!;
 
         private readonly List<Category> categories;
 
@@ -33,6 +33,7 @@ namespace ToDoList.Windows.Forms
                 {
                     return cat.CategoryId;
                 }
+
                 return null;
             }
         }
@@ -74,38 +75,44 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "New Task";
-            Size = new Size(480, 420);
+            Size = new Size(500, 460);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            Padding = new Padding(24, 20, 24, 20);
 
-            int y = 16;
-            int controlLeft = 100;
-            int controlWidth = 350;
+            int y = 24;
+            int controlLeft = 120;
+            int controlWidth = 330;
 
             // Title
-            KryptonLabel lblTitle = new KryptonLabel { Text = "Title:", Location = new Point(12, y + 2), AutoSize = true };
+            KryptonLabel lblTitle = new KryptonLabel { Text = "Title", Location = new Point(24, y + 4), AutoSize = true };
+            lblTitle.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
             txtTitle = new KryptonTextBox { Location = new Point(controlLeft, y), Width = controlWidth };
-            y += 34;
+            txtTitle.StateCommon.Border.Rounding = 4;
+            y += 40;
 
             // Notes
-            KryptonLabel lblNotes = new KryptonLabel { Text = "Notes:", Location = new Point(12, y + 2), AutoSize = true };
-            txtNotes = new KryptonRichTextBox { Location = new Point(controlLeft, y), Width = controlWidth, Height = 120 };
-            y += 130;
+            KryptonLabel lblNotes = new KryptonLabel { Text = "Notes", Location = new Point(24, y + 4), AutoSize = true };
+            lblNotes.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
+            txtNotes = new KryptonRichTextBox { Location = new Point(controlLeft, y), Width = controlWidth, Height = 130 };
+            y += 146;
 
             // Category
-            KryptonLabel lblCategory = new KryptonLabel { Text = "Category:", Location = new Point(12, y + 2), AutoSize = true };
+            KryptonLabel lblCategory = new KryptonLabel { Text = "Category", Location = new Point(24, y + 4), AutoSize = true };
+            lblCategory.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
             cboCategory = new KryptonComboBox
             {
                 Location = new Point(controlLeft, y),
                 Width = controlWidth,
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            y += 34;
+            y += 40;
 
             // Due Date
-            chkHasDueDate = new KryptonCheckBox { Text = "Due Date:", Location = new Point(12, y + 2) };
+            chkHasDueDate = new KryptonCheckBox { Text = "Due Date", Location = new Point(24, y + 4) };
+            chkHasDueDate.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
             dtpDueDate = new KryptonDateTimePicker
             {
                 Location = new Point(controlLeft, y),
@@ -114,11 +121,22 @@ namespace ToDoList.Windows.Forms
                 Format = DateTimePickerFormat.Short
             };
             chkHasDueDate.CheckedChanged += (s, e) => dtpDueDate.Enabled = chkHasDueDate.Checked;
-            y += 50;
+            y += 56;
 
             // Buttons
-            btnSave = new KryptonButton { Text = "Save", Location = new Point(265, y), Width = 90, DialogResult = DialogResult.OK };
-            btnCancel = new KryptonButton { Text = "Cancel", Location = new Point(362, y), Width = 90, DialogResult = DialogResult.Cancel };
+            btnSave = new Controls.AccentButton
+            {
+                Text = "Save",
+                Width = 100,
+                Location = new Point(265, y)
+            };
+
+            btnCancel = new Controls.FlatButton
+            {
+                Text = "Cancel",
+                Width = 80,
+                Location = new Point(375, y)
+            };
 
             btnSave.Click += (s, e) =>
             {
@@ -127,11 +145,15 @@ namespace ToDoList.Windows.Forms
                     KryptonMessageBox.Show(this, "Title is required.", "Validation",
                         KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Warning);
                     DialogResult = DialogResult.None;
+                    return;
                 }
+                DialogResult = DialogResult.OK;
             };
 
-            AcceptButton = btnSave;
-            CancelButton = btnCancel;
+            btnCancel.Click += (s, e) =>
+            {
+                DialogResult = DialogResult.Cancel;
+            };
 
             Controls.AddRange(new Control[]
             {

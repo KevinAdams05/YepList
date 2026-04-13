@@ -9,6 +9,8 @@ namespace ToDoList.Windows.Forms
 {
     public class AboutForm : KryptonForm
     {
+        private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
+
         public AboutForm()
         {
             InitializeComponents();
@@ -17,18 +19,20 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "About YepList";
-            Size = new Size(480, 520);
+            Size = new Size(480, 540);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            BackColor = Color.White;
 
             // Logo
             PictureBox logo = new PictureBox
             {
-                Location = new Point(140, 20),
+                Location = new Point(140, 28),
                 Size = new Size(200, 60),
-                SizeMode = PictureBoxSizeMode.Zoom
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.Transparent
             };
 
             string logoFile = IsWindowsDarkMode() ? "logo-dark.png" : "logo-light.png";
@@ -38,101 +42,125 @@ namespace ToDoList.Windows.Forms
                 logo.Image = Image.FromFile(logoPath);
             }
 
-            // App info
-            KryptonLabel lblVersion = new KryptonLabel
+            // Version
+            Label lblVersion = new Label
             {
                 Text = "Version 1.0.0",
-                Location = new Point(0, 90),
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = SubtextColor,
+                Location = new Point(0, 100),
                 Size = new Size(480, 24),
-                LabelStyle = LabelStyle.NormalControl
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
             };
-            lblVersion.StateCommon.ShortText.TextH = PaletteRelativeAlign.Center;
 
-            KryptonLabel lblAuthor = new KryptonLabel
+            // Author
+            Label lblAuthor = new Label
             {
                 Text = "by Kevin Adams",
-                Location = new Point(0, 114),
+                Font = new Font("Segoe UI", 10f),
+                ForeColor = Color.FromArgb(60, 60, 60),
+                Location = new Point(0, 126),
                 Size = new Size(480, 24),
-                LabelStyle = LabelStyle.NormalControl
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
             };
-            lblAuthor.StateCommon.ShortText.TextH = PaletteRelativeAlign.Center;
 
             // License
-            KryptonLabel lblLicense = new KryptonLabel
+            Label lblLicense = new Label
             {
                 Text = "Licensed under the MIT License",
-                Location = new Point(0, 148),
+                Font = new Font("Segoe UI", 10f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(32, 32, 32),
+                Location = new Point(0, 164),
                 Size = new Size(480, 24),
-                LabelStyle = LabelStyle.BoldControl
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
             };
-            lblLicense.StateCommon.ShortText.TextH = PaletteRelativeAlign.Center;
 
-            // Library credits
-            KryptonLabel lblCredits = new KryptonLabel
+            // Separator
+            Panel separator = new Panel
+            {
+                Location = new Point(40, 200),
+                Size = new Size(400, 1),
+                BackColor = Color.FromArgb(222, 222, 222)
+            };
+
+            // Credits header
+            Label lblCredits = new Label
             {
                 Text = "Third-Party Libraries",
-                Location = new Point(20, 185),
+                Font = new Font("Segoe UI", 10f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(32, 32, 32),
+                Location = new Point(40, 216),
                 AutoSize = true,
-                LabelStyle = LabelStyle.BoldControl
+                BackColor = Color.Transparent
             };
 
-            KryptonDataGridView creditsGrid = new KryptonDataGridView
+            // Credits as clean rows
+            Panel creditsPanel = new Panel
             {
-                Location = new Point(20, 210),
-                Size = new Size(425, 190),
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                ReadOnly = true,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                MultiSelect = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ScrollBars = ScrollBars.Vertical
+                Location = new Point(40, 248),
+                Size = new Size(400, 180),
+                BackColor = Color.Transparent
             };
 
-            DataGridViewTextBoxColumn colLibrary = new DataGridViewTextBoxColumn
-            {
-                Name = "Library",
-                HeaderText = "Library",
-                FillWeight = 40
-            };
-            DataGridViewTextBoxColumn colLicense = new DataGridViewTextBoxColumn
-            {
-                Name = "License",
-                HeaderText = "License",
-                FillWeight = 30
-            };
-            DataGridViewTextBoxColumn colAuthor = new DataGridViewTextBoxColumn
-            {
-                Name = "Author",
-                HeaderText = "Author / Project",
-                FillWeight = 30
-            };
-            creditsGrid.Columns.AddRange(new DataGridViewColumn[] { colLibrary, colLicense, colAuthor });
-
-            creditsGrid.Rows.Add(".NET Runtime", "MIT", "Microsoft");
-            creditsGrid.Rows.Add("Windows Forms", "MIT", "Microsoft");
-            creditsGrid.Rows.Add("Krypton Toolkit", "BSD 3-Clause", "Krypton Suite");
-            creditsGrid.Rows.Add("System.Text.Json", "MIT", "Microsoft");
-            creditsGrid.ClearSelection();
+            int cy = 0;
+            AddCreditRow(creditsPanel, ref cy, ".NET Runtime", "MIT", "Microsoft");
+            AddCreditRow(creditsPanel, ref cy, "Windows Forms", "MIT", "Microsoft");
+            AddCreditRow(creditsPanel, ref cy, "Krypton Toolkit", "BSD 3-Clause", "Krypton Suite");
+            AddCreditRow(creditsPanel, ref cy, "System.Text.Json", "MIT", "Microsoft");
 
             // Close button
-            KryptonButton btnClose = new KryptonButton
+            Controls.AccentButton btnClose = new Controls.AccentButton
             {
                 Text = "Close",
-                Location = new Point(190, 420),
                 Width = 100,
-                DialogResult = DialogResult.OK
+                Location = new Point(190, 450)
             };
-
-            AcceptButton = btnClose;
-            CancelButton = btnClose;
+            btnClose.Click += (s, e) => { DialogResult = DialogResult.OK; };
 
             Controls.AddRange(new Control[]
             {
                 logo, lblVersion, lblAuthor, lblLicense,
-                lblCredits, creditsGrid, btnClose
+                separator, lblCredits, creditsPanel, btnClose
             });
+        }
+
+        private static void AddCreditRow(Panel parent, ref int y, string library, string license, string author)
+        {
+            Label lblLib = new Label
+            {
+                Text = library,
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = Color.FromArgb(32, 32, 32),
+                Location = new Point(0, y),
+                Size = new Size(180, 22),
+                BackColor = Color.Transparent
+            };
+
+            Label lblLicense = new Label
+            {
+                Text = license,
+                Font = new Font("Segoe UI", 9f),
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Location = new Point(180, y),
+                Size = new Size(100, 22),
+                BackColor = Color.Transparent
+            };
+
+            Label lblAuthor = new Label
+            {
+                Text = author,
+                Font = new Font("Segoe UI", 9f),
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Location = new Point(280, y),
+                Size = new Size(120, 22),
+                BackColor = Color.Transparent
+            };
+
+            parent.Controls.AddRange(new Control[] { lblLib, lblLicense, lblAuthor });
+            y += 28;
         }
 
         private static bool IsWindowsDarkMode()
@@ -142,6 +170,7 @@ namespace ToDoList.Windows.Forms
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(
                     @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
                 object? value = key?.GetValue("AppsUseLightTheme");
+
                 return value is int intVal && intVal == 0;
             }
             catch

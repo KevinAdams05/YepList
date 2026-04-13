@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Krypton.Toolkit;
 using ToDoList.Windows.ApiClient;
+using ToDoList.Windows.Controls;
 using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
@@ -15,25 +18,32 @@ namespace ToDoList.Windows.Forms
     {
         private readonly TodoApiClient apiClient;
 
+        // Colors
+        private static readonly Color SidebarBg = Color.FromArgb(247, 247, 247);
+        private static readonly Color SidebarSelectedBg = Color.FromArgb(232, 240, 254);
+        private static readonly Color SidebarSelectedText = Color.FromArgb(53, 122, 232);
+        private static readonly Color SidebarHoverBg = Color.FromArgb(237, 237, 237);
+        private static readonly Color HeaderBg = Color.FromArgb(250, 250, 250);
+        private static readonly Color ContentBg = Color.White;
+        private static readonly Color BorderColor = Color.FromArgb(222, 222, 222);
+        private static readonly Color SubtextColor = Color.FromArgb(120, 120, 120);
+
         // Controls
-        private KryptonTreeView listTreeView = null!;
-        private KryptonDataGridView taskGrid = null!;
-        private KryptonButton btnNewList = null!;
-        private KryptonButton btnManageCategories = null!;
-        private KryptonButton btnAddTask = null!;
-        private KryptonButton btnEditTask = null!;
-        private KryptonButton btnDeleteTask = null!;
-        private KryptonButton btnRefresh = null!;
-        private KryptonButton btnAbout = null!;
-        private KryptonLabel lblStatus = null!;
+        private Panel sidebarPanel = null!;
+        private Panel listPanel = null!;
+        private Panel contentPanel = null!;
+        private Panel headerPanel = null!;
+        private Label lblHeaderTitle = null!;
+        private Panel taskListPanel = null!;
+        private Label lblStatus = null!;
         private System.Windows.Forms.Timer syncTimer = null!;
-        private KryptonSplitContainer splitContainer = null!;
 
         // State
         private List<TodoList> lists = new();
         private List<Category> categories = new();
         private List<TodoItem> currentItems = new();
         private long selectedListId = -1;
+        private TaskPanel? selectedTaskPanel;
 
         public MainForm(TodoApiClient apiClient)
         {
@@ -48,6 +58,7 @@ namespace ToDoList.Windows.Forms
             Size = new Size(1100, 700);
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(800, 500);
+            BackColor = ContentBg;
 
             string iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
             if (File.Exists(iconPath))
@@ -55,140 +66,209 @@ namespace ToDoList.Windows.Forms
                 Icon = new Icon(iconPath);
             }
 
-            // ── Toolbar ─────────────────────────────────────
-            KryptonPanel toolPanel = new KryptonPanel { Dock = DockStyle.Top, Height = 45 };
-
-            btnAddTask = new KryptonButton { Text = "Add Task", Location = new Point(8, 8), Width = 90 };
-            btnEditTask = new KryptonButton { Text = "Edit Task", Location = new Point(104, 8), Width = 90 };
-            btnDeleteTask = new KryptonButton { Text = "Delete Task", Location = new Point(200, 8), Width = 100 };
-            btnRefresh = new KryptonButton { Text = "Refresh", Location = new Point(316, 8), Width = 80 };
-            btnAbout = new KryptonButton { Text = "About", Location = new Point(412, 8), Width = 80 };
-
-            btnAddTask.Click += async (s, e) => await AddTaskAsync();
-            btnEditTask.Click += async (s, e) => await EditTaskAsync();
-            btnDeleteTask.Click += async (s, e) => await DeleteTaskAsync();
-            btnRefresh.Click += async (s, e) => await FullRefreshAsync();
-            btnAbout.Click += (s, e) => { using AboutForm form = new AboutForm(); form.ShowDialog(this); };
-
-            toolPanel.Controls.AddRange(new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh, btnAbout });
-
-            // ── Split Container ─────────────────────────────
-            splitContainer = new KryptonSplitContainer
+            // ── Sidebar ────────────────────────────────────────
+            sidebarPanel = new Panel
             {
-                Dock = DockStyle.Fill,
-                Orientation = Orientation.Vertical,
-                SplitterDistance = 220,
-                FixedPanel = FixedPanel.Panel1
+                Dock = DockStyle.Left,
+                Width = 240,
+                BackColor = SidebarBg
             };
 
-            // ── Left Panel (Lists) ──────────────────────────
-            KryptonPanel leftPanel = new KryptonPanel { Dock = DockStyle.Fill };
+            // Sidebar header
+            Panel sidebarHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 56,
+                BackColor = SidebarBg,
+                Padding = new Padding(16, 0, 16, 0)
+            };
 
-            KryptonLabel lblLists = new KryptonLabel
+            Label lblSidebarTitle = new Label
             {
                 Text = "Lists",
-                Dock = DockStyle.Top,
-                LabelStyle = LabelStyle.BoldControl
+                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(32, 32, 32),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseCompatibleTextRendering = true
             };
-            lblLists.StateCommon.ShortText.Font = new Font("Segoe UI", 11f, FontStyle.Bold);
+            sidebarHeader.Controls.Add(lblSidebarTitle);
 
-            listTreeView = new KryptonTreeView
+            // List items (scrollable panel, items dock Top)
+            listPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                ShowLines = false
+                AutoScroll = true,
+                BackColor = SidebarBg,
+                Padding = new Padding(8, 4, 8, 4)
             };
-            listTreeView.AfterSelect += async (s, e) => await OnListSelectedAsync();
 
-            KryptonPanel leftButtonPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 75 };
+            // Sidebar bottom buttons
+            Panel sidebarBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 90,
+                BackColor = SidebarBg,
+                Padding = new Padding(8, 8, 8, 8)
+            };
 
-            btnNewList = new KryptonButton
+            FlatButton btnNewList = new FlatButton
             {
                 Text = "New List",
-                Location = new Point(8, 5),
-                Width = 195
+                Dock = DockStyle.Top,
+                Height = 34,
+                NormalBackColor = SidebarBg,
+                HoverBackColor = SidebarHoverBg
             };
+            btnNewList.Margin = new Padding(0, 0, 0, 4);
             btnNewList.Click += async (s, e) => await ManageListsAsync();
 
-            btnManageCategories = new KryptonButton
+            FlatButton btnManageCategories = new FlatButton
             {
                 Text = "Manage Categories",
-                Location = new Point(8, 38),
-                Width = 195
+                Dock = DockStyle.Top,
+                Height = 34,
+                NormalBackColor = SidebarBg,
+                HoverBackColor = SidebarHoverBg
             };
             btnManageCategories.Click += async (s, e) => await ManageCategoriesAsync();
 
-            leftButtonPanel.Controls.AddRange(new Control[] { btnNewList, btnManageCategories });
+            sidebarBottom.Controls.Add(btnManageCategories);
+            sidebarBottom.Controls.Add(btnNewList);
 
-            leftPanel.Controls.Add(listTreeView);
-            leftPanel.Controls.Add(leftButtonPanel);
-            leftPanel.Controls.Add(lblLists);
+            sidebarPanel.Controls.Add(listPanel);
+            sidebarPanel.Controls.Add(sidebarBottom);
+            sidebarPanel.Controls.Add(sidebarHeader);
 
-            splitContainer.Panel1.Controls.Add(leftPanel);
+            // Sidebar border
+            Panel sidebarBorder = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 1,
+                BackColor = BorderColor
+            };
 
-            // ── Right Panel (Tasks) ─────────────────────────
-            taskGrid = new KryptonDataGridView
+            // ── Content area ───────────────────────────────────
+            contentPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                MultiSelect = false,
-                ReadOnly = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false
+                BackColor = ContentBg
             };
 
-            // Columns
-            DataGridViewCheckBoxColumn colCompleted = new DataGridViewCheckBoxColumn
+            // Header bar
+            headerPanel = new Panel
             {
-                Name = "IsCompleted",
-                HeaderText = "",
-                Width = 40,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+                Dock = DockStyle.Top,
+                Height = 56,
+                BackColor = HeaderBg,
+                Padding = new Padding(20, 0, 16, 0)
             };
-            DataGridViewTextBoxColumn colTitle = new DataGridViewTextBoxColumn
+
+            Panel headerBorder = new Panel
             {
-                Name = "Title",
-                HeaderText = "Task",
-                ReadOnly = true,
-                FillWeight = 50
+                Dock = DockStyle.Bottom,
+                Height = 1,
+                BackColor = BorderColor
             };
-            DataGridViewTextBoxColumn colCategory = new DataGridViewTextBoxColumn
+            headerPanel.Controls.Add(headerBorder);
+
+            lblHeaderTitle = new Label
             {
-                Name = "Category",
-                HeaderText = "Category",
-                ReadOnly = true,
-                FillWeight = 20
+                Text = "Tasks",
+                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(32, 32, 32),
+                Dock = DockStyle.Left,
+                AutoSize = true,
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseCompatibleTextRendering = true
             };
-            DataGridViewTextBoxColumn colDueDate = new DataGridViewTextBoxColumn
+            headerPanel.Controls.Add(lblHeaderTitle);
+
+            // Header buttons (right-aligned)
+            FlowLayoutPanel headerButtons = new FlowLayoutPanel
             {
-                Name = "DueDate",
-                HeaderText = "Due Date",
-                ReadOnly = true,
-                FillWeight = 15
+                Dock = DockStyle.Right,
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                WrapContents = false,
+                Padding = new Padding(0, 10, 0, 0),
+                BackColor = HeaderBg
             };
 
-            taskGrid.Columns.AddRange(new DataGridViewColumn[] { colCompleted, colTitle, colCategory, colDueDate });
+            AccentButton btnAddTask = new AccentButton { Text = "Add Task", Width = 100 };
+            btnAddTask.Click += async (s, e) => await AddTaskAsync();
+            headerButtons.Controls.Add(btnAddTask);
 
-            taskGrid.CellContentClick += async (s, e) => await OnCellClickAsync(e);
-            taskGrid.CellDoubleClick += async (s, e) => await EditTaskAsync();
+            FlatButton btnEditTask = new FlatButton { Text = "Edit", Width = 70, Margin = new Padding(4, 0, 0, 0) };
+            btnEditTask.Click += async (s, e) => await EditTaskAsync();
+            headerButtons.Controls.Add(btnEditTask);
 
-            splitContainer.Panel2.Controls.Add(taskGrid);
+            FlatButton btnDeleteTask = new FlatButton { Text = "Delete", Width = 70, Margin = new Padding(4, 0, 0, 0) };
+            btnDeleteTask.Click += async (s, e) => await DeleteTaskAsync();
+            headerButtons.Controls.Add(btnDeleteTask);
 
-            // ── Status Bar ──────────────────────────────────
-            KryptonPanel statusPanel = new KryptonPanel { Dock = DockStyle.Bottom, Height = 28 };
-            lblStatus = new KryptonLabel
+            FlatButton btnRefresh = new FlatButton { Text = "Refresh", Width = 76, Margin = new Padding(4, 0, 0, 0) };
+            btnRefresh.Click += async (s, e) => await FullRefreshAsync();
+            headerButtons.Controls.Add(btnRefresh);
+
+            FlatButton btnAbout = new FlatButton { Text = "About", Width = 66, Margin = new Padding(4, 0, 0, 0) };
+            btnAbout.Click += (s, e) => { using AboutForm form = new AboutForm(); form.ShowDialog(this); };
+            headerButtons.Controls.Add(btnAbout);
+
+            headerPanel.Controls.Add(headerButtons);
+
+            // Task list (scrollable panel, items dock Top)
+            Panel taskListContainer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = ContentBg,
+                Padding = new Padding(12, 8, 12, 8)
+            };
+
+            taskListPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                BackColor = ContentBg
+            };
+            taskListContainer.Controls.Add(taskListPanel);
+
+            // Status bar
+            Panel statusPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 30,
+                BackColor = HeaderBg
+            };
+
+            Panel statusBorder = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 1,
+                BackColor = BorderColor
+            };
+            statusPanel.Controls.Add(statusBorder);
+
+            lblStatus = new Label
             {
                 Text = "Connecting...",
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 8.5f),
+                ForeColor = SubtextColor,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(16, 0, 0, 0),
+                UseCompatibleTextRendering = true
             };
-            lblStatus.StateCommon.ShortText.Font = new Font("Segoe UI", 8.5f);
             statusPanel.Controls.Add(lblStatus);
 
-            // ── Assemble ────────────────────────────────────
-            Controls.Add(splitContainer);
-            Controls.Add(toolPanel);
-            Controls.Add(statusPanel);
+            contentPanel.Controls.Add(taskListContainer);
+            contentPanel.Controls.Add(headerPanel);
+            contentPanel.Controls.Add(statusPanel);
+
+            // ── Assemble ───────────────────────────────────────
+            Controls.Add(contentPanel);
+            Controls.Add(sidebarBorder);
+            Controls.Add(sidebarPanel);
         }
 
         private void SetupSyncTimer()
@@ -204,7 +284,7 @@ namespace ToDoList.Windows.Forms
             syncTimer.Start();
         }
 
-        // ── Data Loading ────────────────────────────────────
+        // ── Data Loading ────────────────────────────────────────
 
         private async Task FullRefreshAsync()
         {
@@ -213,12 +293,25 @@ namespace ToDoList.Windows.Forms
                 apiClient.ResetSyncTime();
                 lists = await apiClient.GetListsAsync();
                 categories = await apiClient.GetCategoriesAsync();
-                RefreshListTree();
+                RefreshSidebarLists();
+
+                // Auto-select first list if none selected
+                if (selectedListId < 0 && lists.Count > 0)
+                {
+                    selectedListId = lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name).First().ListId;
+                    RefreshSidebarLists();
+                }
 
                 if (selectedListId > 0)
                 {
                     currentItems = await apiClient.GetItemsByListAsync(selectedListId);
-                    RefreshTaskGrid();
+                    RefreshTaskList();
+
+                    TodoList? selectedList = lists.FirstOrDefault(l => l.ListId == selectedListId);
+                    if (selectedList != null)
+                    {
+                        lblHeaderTitle.Text = selectedList.Name;
+                    }
                 }
 
                 UpdateStatus("Connected");
@@ -235,7 +328,6 @@ namespace ToDoList.Windows.Forms
             {
                 SyncResponse syncResult = await apiClient.SyncAsync();
 
-                // Apply list changes
                 foreach (TodoList list in syncResult.Lists)
                 {
                     TodoList? existing = lists.FirstOrDefault(l => l.ListId == list.ListId);
@@ -252,7 +344,6 @@ namespace ToDoList.Windows.Forms
                 }
                 lists.RemoveAll(l => syncResult.DeletedListIds.Contains(l.ListId));
 
-                // Apply category changes
                 foreach (Category cat in syncResult.Categories)
                 {
                     Category? existing = categories.FirstOrDefault(c => c.CategoryId == cat.CategoryId);
@@ -269,7 +360,6 @@ namespace ToDoList.Windows.Forms
                 }
                 categories.RemoveAll(c => syncResult.DeletedCategoryIds.Contains(c.CategoryId));
 
-                // Apply item changes for current list
                 if (selectedListId > 0)
                 {
                     foreach (TodoItem item in syncResult.Items.Where(i => i.ListId == selectedListId))
@@ -291,18 +381,17 @@ namespace ToDoList.Windows.Forms
                         }
                     }
                     currentItems.RemoveAll(i => syncResult.DeletedItemIds.Contains(i.ItemId));
-                    RefreshTaskGrid();
+                    RefreshTaskList();
                 }
 
-                // Check if selected list was deleted
                 if (syncResult.DeletedListIds.Contains(selectedListId))
                 {
                     selectedListId = -1;
                     currentItems.Clear();
-                    RefreshTaskGrid();
+                    RefreshTaskList();
                 }
 
-                RefreshListTree();
+                RefreshSidebarLists();
                 UpdateStatus($"Synced at {DateTime.Now:HH:mm:ss}");
             }
             catch (Exception ex)
@@ -311,66 +400,113 @@ namespace ToDoList.Windows.Forms
             }
         }
 
-        // ── UI Refresh ──────────────────────────────────────
+        // ── UI Refresh ──────────────────────────────────────────
 
-        private void RefreshListTree()
+        private void RefreshSidebarLists()
         {
-            listTreeView.BeginUpdate();
-            listTreeView.Nodes.Clear();
-            foreach (TodoList list in lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name))
-            {
-                TreeNode node = new TreeNode(list.Name) { Tag = list.ListId };
-                listTreeView.Nodes.Add(node);
+            listPanel.SuspendLayout();
+            listPanel.Controls.Clear();
 
-                if (list.ListId == selectedListId)
+            // Add in reverse order because Dock.Top stacks bottom-up
+            List<TodoList> ordered = lists.OrderBy(l => l.SortOrder).ThenBy(l => l.Name).ToList();
+            for (int i = ordered.Count - 1; i >= 0; i--)
+            {
+                TodoList list = ordered[i];
+                bool isSelected = list.ListId == selectedListId;
+
+                SidebarItem row = new SidebarItem
                 {
-                    listTreeView.SelectedNode = node;
-                }
+                    Text = list.Name,
+                    Dock = DockStyle.Top,
+                    Height = 40,
+                    Tag = list.ListId,
+                    IsItemSelected = isSelected
+                };
+
+                row.Click += (s, e) =>
+                {
+                    long listId = (long)((Control)s!).Tag;
+                    _ = OnListSelectedAsync(listId);
+                };
+
+                listPanel.Controls.Add(row);
             }
-            listTreeView.EndUpdate();
+
+            listPanel.ResumeLayout();
         }
 
-        private void RefreshTaskGrid()
+        private void RefreshTaskList()
         {
-            taskGrid.Rows.Clear();
-            foreach (TodoItem item in currentItems.OrderBy(i => i.IsCompleted).ThenBy(i => i.SortOrder).ThenBy(i => i.Title))
+            taskListPanel.SuspendLayout();
+            taskListPanel.Controls.Clear();
+            selectedTaskPanel = null;
+
+            // Add in reverse order because Dock.Top stacks bottom-up
+            List<TodoItem> ordered = currentItems
+                .OrderBy(i => i.IsCompleted)
+                .ThenBy(i => i.SortOrder)
+                .ThenBy(i => i.Title)
+                .ToList();
+
+            for (int i = ordered.Count - 1; i >= 0; i--)
             {
+                TodoItem item = ordered[i];
                 string categoryName = "";
+                Color? categoryColor = null;
+
                 if (item.CategoryId.HasValue)
                 {
                     Category? cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
                     categoryName = cat?.Name ?? "";
-                }
-
-                string dueDateText = item.DueDate?.ToString("yyyy-MM-dd") ?? "";
-                int rowIndex = taskGrid.Rows.Add(item.IsCompleted, item.Title, categoryName, dueDateText);
-                taskGrid.Rows[rowIndex].Tag = item;
-
-                // Style completed tasks with strikethrough
-                if (item.IsCompleted)
-                {
-                    taskGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = Color.Gray;
-                    taskGrid.Rows[rowIndex].DefaultCellStyle.Font = new Font(taskGrid.Font, FontStyle.Strikeout);
-                }
-
-                // Color the category cell by category color
-                if (item.CategoryId.HasValue)
-                {
-                    Category? cat = categories.FirstOrDefault(c => c.CategoryId == item.CategoryId.Value);
                     if (cat?.Color != null)
                     {
                         try
                         {
-                            Color color = ColorTranslator.FromHtml(cat.Color);
-                            taskGrid.Rows[rowIndex].Cells["Category"].Style.ForeColor = color;
+                            categoryColor = ColorTranslator.FromHtml(cat.Color);
                         }
                         catch
                         {
-                            // Invalid color, ignore
+                            // Invalid color
                         }
                     }
                 }
+
+                TaskPanel panel = new TaskPanel(item, categoryName, categoryColor)
+                {
+                    Dock = DockStyle.Top
+                };
+
+                panel.CompletionToggled += async (s, e) =>
+                {
+                    if (s is TaskPanel tp)
+                    {
+                        await ToggleCompleteAsync(tp.Item);
+                    }
+                };
+                panel.TaskDoubleClicked += async (s, e) =>
+                {
+                    if (s is TaskPanel tp)
+                    {
+                        selectedTaskPanel = tp;
+                        await EditTaskAsync();
+                    }
+                };
+                panel.Click += (s, e) =>
+                {
+                    if (selectedTaskPanel != null)
+                    {
+                        selectedTaskPanel.IsSelected = false;
+                    }
+
+                    TaskPanel tp = (TaskPanel)s!;
+                    tp.IsSelected = true;
+                    selectedTaskPanel = tp;
+                };
+
+                taskListPanel.Controls.Add(panel);
             }
+
+            taskListPanel.ResumeLayout();
         }
 
         private void UpdateStatus(string message)
@@ -378,49 +514,46 @@ namespace ToDoList.Windows.Forms
             lblStatus.Text = $"  {apiClient.BaseUrl}  |  {message}";
         }
 
-        // ── Event Handlers ──────────────────────────────────
+        // ── Event Handlers ──────────────────────────────────────
 
-        private async Task OnListSelectedAsync()
+        private async Task OnListSelectedAsync(long listId)
         {
-            if (listTreeView.SelectedNode?.Tag is long listId)
+            selectedListId = listId;
+            RefreshSidebarLists();
+
+            TodoList? selectedList = lists.FirstOrDefault(l => l.ListId == listId);
+            if (selectedList != null)
             {
-                selectedListId = listId;
-                try
-                {
-                    currentItems = await apiClient.GetItemsByListAsync(listId);
-                    RefreshTaskGrid();
-                }
-                catch (Exception ex)
-                {
-                    UpdateStatus($"Error loading tasks: {ex.Message}");
-                }
+                lblHeaderTitle.Text = selectedList.Name;
+            }
+
+            try
+            {
+                currentItems = await apiClient.GetItemsByListAsync(listId);
+                RefreshTaskList();
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error loading tasks: {ex.Message}");
             }
         }
 
-        private async Task OnCellClickAsync(DataGridViewCellEventArgs e)
+        private async Task ToggleCompleteAsync(TodoItem item)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != 0)
+            try
             {
-                return;
+                TodoItem updated = await apiClient.ToggleCompleteAsync(item.ItemId, !item.IsCompleted);
+                item.IsCompleted = updated.IsCompleted;
+                item.ModifiedDate = updated.ModifiedDate;
+                RefreshTaskList();
             }
-
-            if (taskGrid.Rows[e.RowIndex].Tag is TodoItem item)
+            catch (Exception ex)
             {
-                try
-                {
-                    TodoItem updated = await apiClient.ToggleCompleteAsync(item.ItemId, !item.IsCompleted);
-                    item.IsCompleted = updated.IsCompleted;
-                    item.ModifiedDate = updated.ModifiedDate;
-                    RefreshTaskGrid();
-                }
-                catch (Exception ex)
-                {
-                    UpdateStatus($"Error: {ex.Message}");
-                }
+                UpdateStatus($"Error: {ex.Message}");
             }
         }
 
-        // ── Task CRUD ───────────────────────────────────────
+        // ── Task CRUD ───────────────────────────────────────────
 
         private async Task AddTaskAsync()
         {
@@ -428,6 +561,7 @@ namespace ToDoList.Windows.Forms
             {
                 KryptonMessageBox.Show(this, "Please select a list first.", "No List Selected",
                     KryptonMessageBoxButtons.OK, KryptonMessageBoxIcon.Information);
+
                 return;
             }
 
@@ -440,7 +574,7 @@ namespace ToDoList.Windows.Forms
                         selectedListId, form.TaskTitle, form.TaskNotes,
                         form.SelectedCategoryId, form.TaskDueDate, 0);
                     currentItems.Add(newItem);
-                    RefreshTaskGrid();
+                    RefreshTaskList();
                 }
                 catch (Exception ex)
                 {
@@ -470,7 +604,7 @@ namespace ToDoList.Windows.Forms
                     item.CategoryId = updated.CategoryId;
                     item.DueDate = updated.DueDate;
                     item.ModifiedDate = updated.ModifiedDate;
-                    RefreshTaskGrid();
+                    RefreshTaskList();
                 }
                 catch (Exception ex)
                 {
@@ -497,7 +631,7 @@ namespace ToDoList.Windows.Forms
                 {
                     await apiClient.DeleteItemAsync(item.ItemId);
                     currentItems.Remove(item);
-                    RefreshTaskGrid();
+                    RefreshTaskList();
                 }
                 catch (Exception ex)
                 {
@@ -508,22 +642,17 @@ namespace ToDoList.Windows.Forms
 
         private TodoItem? GetSelectedItem()
         {
-            if (taskGrid.SelectedRows.Count == 0)
-            {
-                return null;
-            }
-
-            return taskGrid.SelectedRows[0].Tag as TodoItem;
+            return selectedTaskPanel?.Item;
         }
 
-        // ── List / Category Management ──────────────────────
+        // ── List / Category Management ──────────────────────────
 
         private async Task ManageListsAsync()
         {
             using ListManagerForm form = new ListManagerForm(apiClient, lists);
             form.ShowDialog(this);
             lists = await apiClient.GetListsAsync();
-            RefreshListTree();
+            RefreshSidebarLists();
         }
 
         private async Task ManageCategoriesAsync()
@@ -531,7 +660,7 @@ namespace ToDoList.Windows.Forms
             using CategoryManagerForm form = new CategoryManagerForm(apiClient, categories);
             form.ShowDialog(this);
             categories = await apiClient.GetCategoriesAsync();
-            RefreshTaskGrid();
+            RefreshTaskList();
         }
     }
 }
