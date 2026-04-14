@@ -232,10 +232,21 @@ namespace ToDoList.Windows.Forms
             FlatButton btnRefresh = new FlatButton { Text = "Refresh", Width = 76, Height = btnHeight };
             btnRefresh.Click += async (s, e) => await FullRefreshAsync();
 
+            FlatButton btnSettings = new FlatButton { Text = "Settings", Width = 80, Height = btnHeight };
+            btnSettings.Click += (s, e) =>
+            {
+                using SettingsForm form = new SettingsForm(settings);
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    settings.ServerUrl = form.ServerUrl;
+                    settings.Save();
+                }
+            };
+
             FlatButton btnAbout = new FlatButton { Text = "About", Width = 66, Height = btnHeight };
             btnAbout.Click += (s, e) => { using AboutForm form = new AboutForm(); form.ShowDialog(this); };
 
-            headerButtons = new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh, btnAbout };
+            headerButtons = new Control[] { btnAddTask, btnEditTask, btnDeleteTask, btnRefresh, btnSettings, btnAbout };
             foreach (Control btn in headerButtons)
             {
                 btn.Top = btnY;
@@ -555,7 +566,8 @@ namespace ToDoList.Windows.Forms
                     Dock = DockStyle.Top,
                     Height = 40,
                     Tag = list.ListId,
-                    IsItemSelected = isSelected
+                    IsItemSelected = isSelected,
+                    IsDefault = settings.DefaultListId == list.ListId
                 };
 
                 row.Click += (s, e) =>

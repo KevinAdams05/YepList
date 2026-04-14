@@ -25,8 +25,33 @@ public class ListSidebar : Gtk.Box {
 
     private void build_ui () {
         var header = new Adw.HeaderBar ();
-        header.title_widget = new Adw.WindowTitle ("Lists", "");
+        header.title_widget = new Adw.WindowTitle ("", "");
         append (header);
+
+        // Logo
+        var logo_image = new Gtk.Picture ();
+        logo_image.set_size_request (160, 48);
+        logo_image.content_fit = Gtk.ContentFit.CONTAIN;
+        logo_image.margin_top = 4;
+        logo_image.margin_bottom = 8;
+        logo_image.halign = Gtk.Align.CENTER;
+
+        string logo_path = get_logo_path ();
+        var logo_file = File.new_for_path (logo_path);
+        if (logo_file.query_exists ()) {
+            logo_image.set_filename (logo_path);
+        }
+
+        var style_manager = Adw.StyleManager.get_default ();
+        style_manager.notify["dark"].connect (() => {
+            string new_path = get_logo_path ();
+            var new_file = File.new_for_path (new_path);
+            if (new_file.query_exists ()) {
+                logo_image.set_filename (new_path);
+            }
+        });
+
+        append (logo_image);
 
         // List store and selection
         list_store = new GLib.ListStore (typeof (TodoList));
@@ -192,9 +217,28 @@ public class ListSidebar : Gtk.Box {
     }
 
     public void update_lists (GenericArray<TodoList> lists) {
+        // Remember selected list ID before clearing
+        int64 selected_id = -1;
+        var pos = selection.selected;
+        if (pos != Gtk.INVALID_LIST_POSITION && pos < list_store.get_n_items ()) {
+            var selected_list = (TodoList) list_store.get_item (pos);
+            selected_id = selected_list.list_id;
+        }
+
         list_store.remove_all ();
         for (uint i = 0; i < lists.length; i++) {
             list_store.append (lists[i]);
+        }
+
+        // Restore selection
+        if (selected_id > 0) {
+            for (uint i = 0; i < list_store.get_n_items (); i++) {
+                var list = (TodoList) list_store.get_item (i);
+                if (list.list_id == selected_id) {
+                    selection.selected = i;
+                    return;
+                }
+            }
         }
     }
 
@@ -221,5 +265,22 @@ public class ListSidebar : Gtk.Box {
                 return;
             }
         }
+    }
+
+    private string get_logo_path () {
+        var style_manager = Adw.StyleManager.get_default ();
+        string filename = style_manager.dark ? "logo-dark.png" : "logo-light.png";
+
+        string installed_path = "/usr/local/share/yep-list/" + filename;
+        if (FileUtils.test (installed_path, FileTest.EXISTS)) {
+            return installed_path;
+        }
+
+        string system_path = "/usr/share/yep-list/" + filename;
+        if (FileUtils.test (system_path, FileTest.EXISTS)) {
+            return system_path;
+        }
+
+        return installed_path;
     }
 }

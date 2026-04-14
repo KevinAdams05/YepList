@@ -25,6 +25,7 @@ sources = files(
   'src/TaskEditDialog.vala',
   'src/ListSidebar.vala',
   'src/CategoryManagerDialog.vala',
+  'src/SettingsDialog.vala',
   'src/AboutDialog.vala',
   'src/RemoteLogger.vala',
 )
@@ -32,6 +33,11 @@ sources = files(
 executable('yep-list', sources,
   dependencies: dependencies,
   install: true,
+)
+
+# Install desktop file
+install_data('data/com.github.kevinadams05.yeplist.desktop',
+  install_dir: get_option('datadir') / 'applications',
 )
 
 # Install icon

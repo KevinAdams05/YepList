@@ -7,6 +7,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -43,6 +46,15 @@ class TaskListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Handle edge-to-edge insets: pad bottom for nav bar + keyboard
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val bottomPadding = maxOf(imeInsets.bottom, navInsets.bottom)
+            v.updatePadding(bottom = bottomPadding)
+            insets
+        }
 
         adapter = TaskAdapter(
             onToggleComplete = { item -> taskViewModel.toggleComplete(item) },
@@ -127,23 +139,19 @@ class TaskListFragment : Fragment() {
     private fun updateSyncStatus(state: SyncManager.SyncState) {
         val statusText = binding.syncStatusText
         when (state) {
-            SyncManager.SyncState.IDLE -> statusText.visibility = View.GONE
+            SyncManager.SyncState.IDLE -> statusText.text = ""
             SyncManager.SyncState.SYNCING -> {
                 statusText.text = getString(R.string.syncing)
-                statusText.visibility = View.VISIBLE
             }
             SyncManager.SyncState.SYNCED -> {
                 statusText.text = getString(R.string.connected)
-                statusText.visibility = View.VISIBLE
-                statusText.postDelayed({ statusText.visibility = View.GONE }, 3000)
+                statusText.postDelayed({ statusText.text = "" }, 3000)
             }
             SyncManager.SyncState.OFFLINE -> {
                 statusText.text = getString(R.string.offline)
-                statusText.visibility = View.VISIBLE
             }
             SyncManager.SyncState.ERROR -> {
                 statusText.text = getString(R.string.offline)
-                statusText.visibility = View.VISIBLE
             }
         }
     }

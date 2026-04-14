@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=YepList
+Comment=A simple to-do list app
+Exec=yep-list
+Icon=com.github.kevinadams05.yeplist
+Terminal=false
+Type=Application
+Categories=Utility;GTK;
+Keywords=todo;tasks;list;

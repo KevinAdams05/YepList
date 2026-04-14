@@ -78,6 +78,7 @@ public class MainWindow : Adw.ApplicationWindow {
         // Menu button
         var menu_model = new Menu ();
         menu_model.append ("Manage Categories", "win.manage-categories");
+        menu_model.append ("Settings", "win.settings");
         menu_model.append ("Refresh", "win.refresh");
         menu_model.append ("About", "win.about");
 
@@ -196,6 +197,13 @@ public class MainWindow : Adw.ApplicationWindow {
             full_refresh.begin ();
         });
         add_action (refresh_action);
+
+        var settings_action = new SimpleAction ("settings", null);
+        settings_action.activate.connect (() => {
+            var dialog = new SettingsDialog (settings);
+            dialog.present (this);
+        });
+        add_action (settings_action);
 
         var about_action = new SimpleAction ("about", null);
         about_action.activate.connect (() => {

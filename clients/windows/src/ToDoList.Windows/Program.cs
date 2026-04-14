@@ -13,7 +13,10 @@ namespace ToDoList.Windows
         [STAThread]
         static void Main()
         {
-            ApplicationConfiguration.Initialize();
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetDefaultFont(new System.Drawing.Font("Segoe UI", 9f));
 
             // Set Krypton theme globally before creating any forms
             kryptonManager = new KryptonManager();

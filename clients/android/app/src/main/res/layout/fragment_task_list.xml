@@ -54,16 +54,16 @@
 
         </LinearLayout>
 
-        <!-- Sync status bar (fixed at bottom) -->
+        <!-- Sync status bar (fixed at bottom, always reserves space) -->
         <TextView
             android:id="@+id/syncStatusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorSurfaceVariant"
             android:gravity="center"
+            android:minHeight="24dp"
             android:paddingVertical="4dp"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
-            android:visibility="gone" />
+            android:textAppearance="?attr/textAppearanceLabelSmall" />
 
     </LinearLayout>
 

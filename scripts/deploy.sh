@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # YepList Deploy Script
-# Usage: ./deploy.sh api|linux|sql <file>|status
+# Usage: ./deploy.sh api|linux|android|sql <file>|status
 
 # ── Server Config ──────────────────────────────────────────────
 HOST="192.168.74.122"
@@ -14,6 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_DIR="$SCRIPT_DIR/../backend"
 LINUX_SRC_DIR="$SCRIPT_DIR/../clients/linux"
 LINUX_REMOTE_DIR="/home/$USER/yeplist-linux"
+ANDROID_SRC_DIR="$SCRIPT_DIR/../clients/android"
 PUBLISH_DIR="/tmp/yeplist-publish"
 SHARE_DIR="//storage01/Files/YepList"
 
@@ -138,6 +139,33 @@ EOF
     log "Run with: yep-list --server http://localhost:5000"
 }
 
+deploy_android() {
+    if [ ! -f "$ANDROID_SRC_DIR/gradlew" ]; then
+        err "Android client source not found at $ANDROID_SRC_DIR"
+    fi
+
+    log "1/2 Building Android APK..."
+    # Use Java directly to avoid gradlew bash/bat quoting issues on Git Bash
+    local gradle_java_home
+    gradle_java_home=$(grep 'org.gradle.java.home' "$ANDROID_SRC_DIR/gradle.properties" | cut -d= -f2 | sed 's/\\\\*/\//g' | xargs)
+    "$gradle_java_home/bin/java" -Xmx64m -Xms64m \
+        -classpath "$ANDROID_SRC_DIR/gradle/wrapper/gradle-wrapper.jar" \
+        org.gradle.wrapper.GradleWrapperMain \
+        -p "$ANDROID_SRC_DIR" \
+        assembleDebug --no-daemon -q
+    ok "Build succeeded"
+
+    local apk="$ANDROID_SRC_DIR/app/build/outputs/apk/debug/YepList.apk"
+    if [ ! -f "$apk" ]; then
+        err "APK not found at $apk"
+    fi
+
+    log "2/2 Copying APK to network share ($SHARE_DIR)..."
+    mkdir -p "$SHARE_DIR"
+    cp "$apk" "$SHARE_DIR/YepList.apk"
+    ok "Copied YepList.apk to $SHARE_DIR ($(du -h "$apk" | cut -f1))"
+}
+
 deploy_sql() {
     local sqlfile=$1
     if [ ! -f "$sqlfile" ]; then
@@ -166,10 +194,11 @@ EOF
 # ── Main ───────────────────────────────────────────────────────
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 api|linux|sql <file>|status"
+    echo "Usage: $0 api|linux|android|sql <file>|status"
     echo ""
     echo "  api       Publish and deploy API to $HOST"
     echo "  linux     Build and install Linux client on $HOST"
+    echo "  android   Build APK and copy to $SHARE_DIR"
     echo "  sql <f>   Run a SQL script on the server's MySQL"
     echo "  status    Check service status and recent logs"
     exit 1
@@ -182,6 +211,9 @@ case "$1" in
     linux)
         deploy_linux
         ;;
+    android)
+        deploy_android
+        ;;
     sql)
         [ $# -lt 2 ] && err "Usage: $0 sql <file.sql>"
         deploy_sql "$2"
@@ -190,7 +222,7 @@ case "$1" in
         check_status
         ;;
     *)
-        err "Unknown command: $1. Use api|linux|sql|status"
+        err "Unknown command: $1. Use api|linux|android|sql|status"
         ;;
 esac
 

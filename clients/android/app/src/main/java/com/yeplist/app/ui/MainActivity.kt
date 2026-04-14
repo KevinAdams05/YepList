@@ -1,14 +1,19 @@
 package com.yeplist.app.ui
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -23,6 +28,10 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_LIST_ID = "extra_list_id"
+    }
+
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
 
@@ -30,11 +39,24 @@ class MainActivity : AppCompatActivity() {
     private var taskListFragment: TaskListFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
+
+        // Handle edge-to-edge insets: pad toolbar for status bar, drawer for system bars
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = systemBars.top)
+            insets
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.drawerContainer) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = systemBars.top, bottom = systemBars.bottom)
+            insets
+        }
 
         // Drawer toggle
         val toggle = ActionBarDrawerToggle(
@@ -62,6 +84,9 @@ class MainActivity : AppCompatActivity() {
             sidebarFragment = supportFragmentManager.findFragmentById(R.id.drawerContainer) as? ListSidebarFragment
             taskListFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? TaskListFragment
         }
+
+        // Handle deep-link from widget
+        handleWidgetIntent(intent)
 
         // Update toolbar title when selected list changes
         lifecycleScope.launch {
@@ -91,6 +116,18 @@ class MainActivity : AppCompatActivity() {
 
         // Trigger initial sync
         viewModel.sync()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleWidgetIntent(intent)
+    }
+
+    private fun handleWidgetIntent(intent: Intent?) {
+        val listId = intent?.getLongExtra(EXTRA_LIST_ID, -1) ?: -1
+        if (listId > 0) {
+            viewModel.selectList(listId)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

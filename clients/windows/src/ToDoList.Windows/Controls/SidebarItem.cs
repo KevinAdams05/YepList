@@ -14,6 +14,9 @@ namespace ToDoList.Windows.Controls
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsItemSelected { get; set; }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsDefault { get; set; }
+
         public SidebarItem()
         {
             SetStyle(
@@ -62,8 +65,9 @@ namespace ToDoList.Windows.Controls
             Font textFont = IsItemSelected ? new Font(Font, FontStyle.Bold) : Font;
             Color textColor = IsItemSelected ? AppTheme.SidebarSelectedText : AppTheme.TitleColor;
 
+            float starWidth = IsDefault ? 20f : 0f;
             using SolidBrush textBrush = new SolidBrush(textColor);
-            RectangleF textRect = new RectangleF(16, 0, Width - 24, Height);
+            RectangleF textRect = new RectangleF(16, 0, Width - 24 - starWidth, Height);
             StringFormat sf = new StringFormat
             {
                 Alignment = StringAlignment.Near,
@@ -71,6 +75,19 @@ namespace ToDoList.Windows.Controls
                 Trimming = StringTrimming.EllipsisCharacter
             };
             g.DrawString(Text, textFont, textBrush, textRect, sf);
+
+            if (IsDefault)
+            {
+                using Font starFont = new Font("Segoe UI", 11f);
+                using SolidBrush starBrush = new SolidBrush(AppTheme.SubtextColor);
+                RectangleF starRect = new RectangleF(Width - 32, 0, 24, Height);
+                StringFormat starSf = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center
+                };
+                g.DrawString("\u2605", starFont, starBrush, starRect, starSf);
+            }
 
             if (IsItemSelected)
             {

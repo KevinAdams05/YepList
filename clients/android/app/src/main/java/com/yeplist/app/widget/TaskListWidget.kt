@@ -1,6 +1,7 @@
 package com.yeplist.app.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,7 @@ import androidx.glance.text.TextStyle
 import com.yeplist.app.YepListApp
 import com.yeplist.app.data.local.entity.TodoItemEntity
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.actionStartActivity
 import com.yeplist.app.debug.RemoteLogger
 import com.yeplist.app.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +65,7 @@ class TaskListWidget : GlanceAppWidget() {
                         container.todoItemRepository.getItemsForWidget(listId)
                     }
                     RemoteLogger.d(TAG, "provideContent: listName='$listName', items=${items.size}")
-                    TaskListContent(context, listName, items)
+                    TaskListContent(context, listName, listId, items)
                 }
             }
         }
@@ -89,10 +91,18 @@ class TaskListWidget : GlanceAppWidget() {
         }
     }
 
+    private fun openListIntent(context: Context, listId: Long): Intent {
+        return Intent(context, MainActivity::class.java).apply {
+            putExtra(MainActivity.EXTRA_LIST_ID, listId)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+    }
+
     @Composable
     private fun TaskListContent(
         context: Context,
         listName: String,
+        listId: Long,
         items: List<TodoItemEntity>
     ) {
         Column(
@@ -100,7 +110,7 @@ class TaskListWidget : GlanceAppWidget() {
                 .fillMaxSize()
                 .appWidgetBackground()
                 .background(GlanceTheme.colors.widgetBackground)
-                .clickable(actionStartActivity<MainActivity>())
+                .clickable(actionStartActivity(openListIntent(context, listId)))
         ) {
             // Header
             Text(
