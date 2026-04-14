@@ -1,30 +1,31 @@
 # YepList
 
-A selfhosted cross-platform (Windows/Linux/Android) To-Do list app.
+> [!WARNING]
+> This is very early beta code, use at your own risk. Data is not encrypted in the database and SSL is not forced. Intended for local network traffic only. Don't store any top secret data in this app.
+
+A selfhosted cross-platform (Windows/Linux/Android) To-Do list app. The backend consists of MySQL and C#/ASP.NET Core. Clients are available for Linux, Windows, and Android. 
+
+Created with the help of Generative AI.
+
+## Screenshots
+**Linux**
+![linux screenshot](resources/linuxscreenshot.png)
+
+
+**Windows**
+![windows screenshot](resources/windowsscreenshot.png)
+
+**Android**
+
+screenshot coming soon
 
 ## Architecture
 
 YepList uses a shared REST API backend with three native clients that sync via timestamp-based polling.
 
-```
-                    +------------------+
-                    |   MySQL 8.0      |
-                    +--------+---------+
-                             |
-                    +--------+---------+
-                    |  ASP.NET Core    |
-                    |  REST API        |
-                    |  (Port 5000)     |
-                    +----+---+----+----+
-                         |   |    |
-            +------------+   |    +-------------+
-            |                |                  |
-   +--------+-------+  +----+--------+  +------+---------+
-   | Windows Client |  | Linux Client|  | Android Client |
-   | C# WinForms    |  | Vala + GTK4 |  | Kotlin         |
-   | Krypton Toolkit|  | libadwaita  |  | Material 3     |
-   +----------------+  +-------------+  +----------------+
-```
+<p align="center">
+  <img src="resources/architecture.svg" alt="YepList Architecture" width="640">
+</p>
 
 ## Technology Stack
 
@@ -122,4 +123,4 @@ ToDoList/
 
 ## License
 
-This is a personal project. All rights reserved.
+This project is licensed under the [MIT License](LICENSE).

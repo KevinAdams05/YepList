@@ -19,11 +19,9 @@
 
 YepList is a cross-platform task management application with a shared REST API backend and three native clients.
 
-```
-  Windows (C# WinForms + Krypton)  ──┐
-  Linux (Vala + GTK4/libadwaita)   ──┼── HTTP REST ──> ASP.NET Core API ──> MySQL 8.0
-  Android (Kotlin + Material 3)    ──┘                  (Port 5000)
-```
+<p align="center">
+  <img src="architecture.svg" alt="YepList Architecture" width="720">
+</p>
 
 ### Technology Stack
 
