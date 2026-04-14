@@ -38,6 +38,11 @@ namespace ToDoList.Api.Controllers
         [HttpPost("api/lists/{listId}/items")]
         public async Task<IActionResult> Create(long listId, [FromBody] CreateTodoItemRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.TodoItem item = await itemRepository.InsertAsync(
                 listId, request.Title, request.Notes,
                 request.CategoryId, request.DueDate, request.SortOrder);
@@ -49,6 +54,11 @@ namespace ToDoList.Api.Controllers
         [HttpPut("api/items/{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] UpdateTodoItemRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.TodoItem? item = await itemRepository.UpdateAsync(
                 id, request.Title, request.Notes, request.CategoryId,
                 request.IsCompleted, request.DueDate, request.SortOrder,
@@ -76,6 +86,11 @@ namespace ToDoList.Api.Controllers
         [HttpPut("api/lists/{listId}/items/reorder")]
         public async Task<IActionResult> Reorder(long listId, [FromBody] ReorderItemsRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var entries = request.Items.Select(e => (e.ItemId, e.SortOrder));
             await itemRepository.ReorderAsync(entries);
 

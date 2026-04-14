@@ -17,7 +17,7 @@ Created with the help of Generative AI.
 
 **Android**
 
-screenshot coming soon
+<img src="resources/AndroidScreenshot.jpg" alt="android screenshot" width="300">
 
 ## Architecture
 

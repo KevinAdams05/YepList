@@ -8,23 +8,32 @@ All notable changes to YepList will be documented in this file.
 - **Android**: Widget deep-link — tapping a widget opens the app to that specific list
 - **Android**: Edge-to-edge support for Android 16 (keyboard no longer covers input, toolbar no longer overlaps status bar)
 - **Android**: Widget config screen now syncs with server before showing lists
+- **Android**: Tabbed About dialog with Libraries and Changelog tabs
 - **Linux**: Color picker with preset swatches in category manager
 - **Linux**: Logo displayed in sidebar above lists
 - **Linux**: Settings dialog for configuring server URL
 - **Linux**: `.desktop` file for taskbar/launcher icon
 - **Linux**: `.deb` package building via deploy script for easy installation on local network
+- **Linux**: Tabbed About dialog with Libraries and Changelog tabs
 - **Windows**: Settings dialog for configuring server URL
 - **Windows**: Default list star indicator in sidebar
+- **Windows**: Tabbed About dialog with Libraries and Changelog tabs
+- **Windows**: Reusable `MarkdownRenderer` utility class for rich text formatting
+- **Backend**: Input validation on all API request DTOs (max lengths, required fields, regex patterns)
+- **Backend**: `ModelState.IsValid` checks on all controller endpoints
+- **Backend**: Debug log endpoint hardened with field length limits and batch size cap (100)
 - **Docs**: SVG architecture diagrams in README and documentation
 - **Docs**: Screenshots in README
 - **Docs**: Warning banner about beta status and local network use
 - **Docs**: MIT license
+- **Docs**: Changelog file with full version history
 
 ### Fixed
 - **Android**: Sync status bar no longer causes layout bounce (always reserves space)
 - **Android**: Widget `actionStartActivity` import conflict resolved
 - **Linux**: Sidebar no longer jumps to top list on refresh (preserves selection)
 - **Windows**: Jagged fonts fixed with `HighDpiMode.PerMonitorV2` and explicit font rendering settings
+- **Windows**: Bold text no longer bleeds into subsequent lines in changelog rendering
 
 ## [0.4.1] - 2026-04-12
 

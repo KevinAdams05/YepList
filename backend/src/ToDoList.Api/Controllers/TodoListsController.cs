@@ -39,6 +39,11 @@ namespace ToDoList.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTodoListRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.TodoList list = await listRepository.InsertAsync(request.Name, request.SortOrder);
             TodoListDto dto = MapToDto(list);
 
@@ -48,6 +53,11 @@ namespace ToDoList.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] CreateTodoListRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.TodoList? list = await listRepository.UpdateAsync(id, request.Name, request.SortOrder);
             if (list == null)
             {

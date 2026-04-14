@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ToDoList.Api.Controllers
@@ -18,6 +19,11 @@ namespace ToDoList.Api.Controllers
         [HttpPost("log")]
         public IActionResult Log([FromBody] DebugLogRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             WriteLogEntry(request);
             return Ok();
         }
@@ -25,6 +31,16 @@ namespace ToDoList.Api.Controllers
         [HttpPost("log/batch")]
         public IActionResult LogBatch([FromBody] List<DebugLogRequest> requests)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (requests.Count > 100)
+            {
+                return BadRequest("Batch size cannot exceed 100 entries.");
+            }
+
             foreach (DebugLogRequest request in requests)
             {
                 WriteLogEntry(request);
@@ -53,10 +69,19 @@ namespace ToDoList.Api.Controllers
 
     public class DebugLogRequest
     {
+        [MaxLength(20)]
         public string? Level { get; set; }
+
+        [MaxLength(100)]
         public string? Tag { get; set; }
+
+        [MaxLength(10000)]
         public string? Message { get; set; }
+
+        [MaxLength(200)]
         public string? Device { get; set; }
+
+        [MaxLength(50)]
         public string? Timestamp { get; set; }
     }
 }

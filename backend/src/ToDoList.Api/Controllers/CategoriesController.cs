@@ -39,6 +39,11 @@ namespace ToDoList.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.Category category = await categoryRepository.InsertAsync(request.Name, request.Color);
             CategoryDto dto = MapToDto(category);
 
@@ -48,6 +53,11 @@ namespace ToDoList.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(long id, [FromBody] CreateCategoryRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             Core.Models.Category? category = await categoryRepository.UpdateAsync(id, request.Name, request.Color);
             if (category == null)
             {
