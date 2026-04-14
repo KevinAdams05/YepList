@@ -121,6 +121,10 @@ ToDoList/
   docs/                    # Documentation
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a full list of changes by version.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

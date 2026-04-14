@@ -149,6 +149,7 @@ EOF
         cp data/yeplist.png \$DEB_DIR/usr/share/icons/hicolor/256x256/apps/com.github.kevinadams05.yeplist.png
         cp data/logo-dark.png \$DEB_DIR/usr/share/yep-list/
         cp data/logo-light.png \$DEB_DIR/usr/share/yep-list/
+        cp data/CHANGELOG.md \$DEB_DIR/usr/share/yep-list/
 
         mkdir -p \$DEB_DIR/DEBIAN
         cat > \$DEB_DIR/DEBIAN/control <<CTRL

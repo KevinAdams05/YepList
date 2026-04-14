@@ -1,5 +1,5 @@
 project('yep-list', 'vala', 'c',
-  version: '0.4.1',
+  version: '0.5.0',
   meson_version: '>= 0.62.0',
 )
 
@@ -51,5 +51,10 @@ install_data('data/logo-dark.png',
   install_dir: get_option('datadir') / 'yep-list',
 )
 install_data('data/logo-light.png',
+  install_dir: get_option('datadir') / 'yep-list',
+)
+
+# Install changelog for About dialog
+install_data('data/CHANGELOG.md',
   install_dir: get_option('datadir') / 'yep-list',
 )

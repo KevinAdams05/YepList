@@ -5,6 +5,12 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -166,9 +172,107 @@ class MainActivity : AppCompatActivity() {
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
         versionText.text = "Version $versionName"
 
+        // Load changelog from assets
+        val changelogText = view.findViewById<TextView>(R.id.changelogText)
+        try {
+            val changelog = assets.open("CHANGELOG.md").bufferedReader().readText()
+            changelogText.text = parseMarkdown(changelog)
+        } catch (_: Exception) {
+            changelogText.text = "Changelog not found."
+        }
+
+        // Tab switching
+        val librariesContent = view.findViewById<View>(R.id.librariesContent)
+        val changelogContent = view.findViewById<View>(R.id.changelogContent)
+        val tabLayout = view.findViewById<com.google.android.material.tabs.TabLayout>(R.id.aboutTabs)
+
+        tabLayout.addTab(tabLayout.newTab().setText("Libraries"))
+        tabLayout.addTab(tabLayout.newTab().setText("Changelog"))
+
+        tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
+                when (tab.position) {
+                    0 -> {
+                        librariesContent.visibility = View.VISIBLE
+                        changelogContent.visibility = View.GONE
+                    }
+                    1 -> {
+                        librariesContent.visibility = View.GONE
+                        changelogContent.visibility = View.VISIBLE
+                    }
+                }
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
+
         MaterialAlertDialogBuilder(this)
             .setView(view)
             .setPositiveButton(android.R.string.ok, null)
             .show()
+    }
+
+    private fun parseMarkdown(markdown: String): SpannableStringBuilder {
+        val sb = SpannableStringBuilder()
+
+        for (line in markdown.lines()) {
+            when {
+                line.startsWith("### ") -> {
+                    val start = sb.length
+                    sb.append(line.removePrefix("### "))
+                    sb.setSpan(StyleSpan(Typeface.BOLD), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.setSpan(RelativeSizeSpan(1.1f), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.append("\n")
+                }
+                line.startsWith("## ") -> {
+                    val start = sb.length
+                    sb.append(line.removePrefix("## "))
+                    sb.setSpan(StyleSpan(Typeface.BOLD), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.setSpan(RelativeSizeSpan(1.3f), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.append("\n")
+                }
+                line.startsWith("# ") -> {
+                    val start = sb.length
+                    sb.append(line.removePrefix("# "))
+                    sb.setSpan(StyleSpan(Typeface.BOLD), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.setSpan(RelativeSizeSpan(1.5f), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    sb.append("\n")
+                }
+                line.startsWith("- ") -> {
+                    sb.append("  \u2022 ")
+                    appendWithInlineBold(sb, line.removePrefix("- "))
+                    sb.append("\n")
+                }
+                else -> {
+                    sb.append(line)
+                    sb.append("\n")
+                }
+            }
+        }
+
+        return sb
+    }
+
+    private fun appendWithInlineBold(sb: SpannableStringBuilder, text: String) {
+        var i = 0
+        while (i < text.length) {
+            val boldStart = text.indexOf("**", i)
+            if (boldStart == -1) {
+                sb.append(text.substring(i))
+                break
+            }
+            if (boldStart > i) {
+                sb.append(text.substring(i, boldStart))
+            }
+            val boldEnd = text.indexOf("**", boldStart + 2)
+            if (boldEnd == -1) {
+                sb.append(text.substring(boldStart))
+                break
+            }
+            val start = sb.length
+            sb.append(text.substring(boldStart + 2, boldEnd))
+            sb.setSpan(StyleSpan(Typeface.BOLD), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            i = boldEnd + 2
+        }
     }
 }

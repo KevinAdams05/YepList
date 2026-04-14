@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp">
+    android:orientation="vertical">
 
+    <!-- Header: logo, version, author, license -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="8dp">
 
-        <!-- Logo -->
         <ImageView
             android:id="@+id/aboutLogo"
             android:layout_width="200dp"
@@ -19,55 +24,77 @@
             android:adjustViewBounds="true"
             android:contentDescription="@string/app_name" />
 
-        <!-- Version -->
         <TextView
             android:id="@+id/aboutVersion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-        <!-- Author -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/about_author"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
-
-        <!-- License -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:text="@string/about_author"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:text="@string/about_license"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?android:attr/textColorSecondary" />
 
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="12dp"
-            android:background="?android:attr/listDivider" />
-
-        <!-- Third-party heading -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/about_third_party"
-            android:textAppearance="?attr/textAppearanceLabelLarge" />
-
-        <!-- Libraries -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/about_libraries"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:lineSpacingMultiplier="1.4" />
-
     </LinearLayout>
 
-</ScrollView>
+    <!-- Tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/aboutTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
+
+    <!-- Tab content -->
+    <FrameLayout
+        android:id="@+id/aboutTabContent"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:padding="16dp">
+
+        <!-- Libraries content -->
+        <ScrollView
+            android:id="@+id/librariesContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/about_libraries"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:lineSpacingMultiplier="1.4" />
+
+        </ScrollView>
+
+        <!-- Changelog content -->
+        <ScrollView
+            android:id="@+id/changelogContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/changelogText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:lineSpacingMultiplier="1.3" />
+
+        </ScrollView>
+
+    </FrameLayout>
+
+</LinearLayout>

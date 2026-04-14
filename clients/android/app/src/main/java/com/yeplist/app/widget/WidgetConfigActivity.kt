@@ -51,21 +51,17 @@ class WidgetConfigActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.listRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Load lists, sync first if database is empty
+        // Always sync to get the latest lists from the server
         lifecycleScope.launch {
-            var lists = container.todoListRepository.getAllSync()
-            RemoteLogger.d(TAG, "Initial lists count: ${lists.size}")
-
-            if (lists.isEmpty()) {
-                RemoteLogger.d(TAG, "No lists in DB, triggering sync first")
-                try {
-                    container.syncManager.sync()
-                    lists = container.todoListRepository.getAllSync()
-                    RemoteLogger.d(TAG, "After sync, lists count: ${lists.size}")
-                } catch (e: Exception) {
-                    RemoteLogger.e(TAG, "Sync failed in widget config", e)
-                }
+            try {
+                RemoteLogger.d(TAG, "Syncing to get latest lists")
+                container.syncManager.sync()
+            } catch (e: Exception) {
+                RemoteLogger.e(TAG, "Sync failed in widget config", e)
             }
+
+            val lists = container.todoListRepository.getAllSync()
+            RemoteLogger.d(TAG, "Lists count: ${lists.size}")
 
             recyclerView.adapter = ListPickerAdapter(lists) { selectedList ->
                 saveWidgetConfig(selectedList.listId)
