@@ -1,7 +1,9 @@
 package com.yeplist.app.sync
 
+import android.content.Context
 import com.yeplist.app.data.repository.SyncRepository
 import com.yeplist.app.debug.RemoteLogger
+import com.yeplist.app.widget.TaskListWidget
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,6 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class SyncManager(
+    private val context: Context,
     private val syncRepository: SyncRepository,
     private val pendingProcessor: PendingOperationProcessor,
     private val connectivityMonitor: ConnectivityMonitor
@@ -39,6 +42,9 @@ class SyncManager(
 
                 // Pull phase: fetch server changes into Room
                 syncRepository.pullFromServer()
+
+                // Update home screen widgets with fresh data
+                TaskListWidget.updateAll(context)
 
                 _syncState.value = SyncState.SYNCED
                 RemoteLogger.d(TAG, "sync: complete")

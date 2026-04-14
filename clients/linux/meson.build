@@ -26,6 +26,7 @@ sources = files(
   'src/ListSidebar.vala',
   'src/CategoryManagerDialog.vala',
   'src/AboutDialog.vala',
+  'src/RemoteLogger.vala',
 )
 
 executable('yep-list', sources,

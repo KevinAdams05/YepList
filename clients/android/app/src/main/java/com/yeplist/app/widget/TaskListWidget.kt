@@ -29,6 +29,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.yeplist.app.YepListApp
 import com.yeplist.app.data.local.entity.TodoItemEntity
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.yeplist.app.debug.RemoteLogger
 import com.yeplist.app.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
@@ -126,36 +127,77 @@ class TaskListWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .clickable(
-                    ToggleCompleteAction.action(item.itemId)
-                ),
+                .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val checkmark = if (item.isCompleted) "\u2611" else "\u2610"
-            Text(
-                text = checkmark,
-                style = TextStyle(
-                    color = GlanceTheme.colors.onSurface,
-                    fontSize = 18.sp
-                ),
-                modifier = GlanceModifier.padding(end = 8.dp)
-            )
-            Text(
-                text = item.title,
-                style = TextStyle(
-                    color = if (item.isCompleted) {
-                        GlanceTheme.colors.outline
-                    } else {
-                        GlanceTheme.colors.onSurface
-                    },
-                    fontSize = 14.sp
+            // Checkbox + title area (clickable to toggle complete)
+            Row(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .clickable(ToggleCompleteAction.action(item.itemId)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val checkmark = if (item.isCompleted) "\u2611" else "\u2610"
+                Text(
+                    text = checkmark,
+                    style = TextStyle(
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = 18.sp
+                    ),
+                    modifier = GlanceModifier.padding(end = 8.dp)
                 )
-            )
+                Text(
+                    text = item.title,
+                    style = TextStyle(
+                        color = if (item.isCompleted) {
+                            GlanceTheme.colors.outline
+                        } else {
+                            GlanceTheme.colors.onSurface
+                        },
+                        fontSize = 14.sp
+                    )
+                )
+            }
+
+            // Delete button
+            Box(
+                modifier = GlanceModifier
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                    .clickable(DeleteTaskAction.action(item.itemId)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "\u00D7",
+                    style = TextStyle(
+                        color = GlanceTheme.colors.outline,
+                        fontSize = 18.sp
+                    )
+                )
+            }
         }
     }
 
     companion object {
         private const val TAG = "TaskListWidget"
+
+        /**
+         * Update all widget instances. Called after sync completes
+         * so widgets reflect the latest data.
+         */
+        suspend fun updateAll(context: Context) {
+            try {
+                val manager = GlanceAppWidgetManager(context)
+                val glanceIds = manager.getGlanceIds(TaskListWidget::class.java)
+                val widget = TaskListWidget()
+                for (id in glanceIds) {
+                    widget.update(context, id)
+                }
+                if (glanceIds.isNotEmpty()) {
+                    RemoteLogger.d(TAG, "Updated ${glanceIds.size} widget(s) after sync")
+                }
+            } catch (e: Exception) {
+                RemoteLogger.e(TAG, "Failed to update widgets", e)
+            }
+        }
     }
 }

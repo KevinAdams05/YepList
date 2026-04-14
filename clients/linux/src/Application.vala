@@ -96,6 +96,9 @@ public class TodoApp : Adw.Application {
             app_settings.save ();
         }
 
+        RemoteLogger.init (server_url);
+        RemoteLogger.info ("App", "YepList Linux started, server=%s".printf (server_url));
+
         var app = new TodoApp ();
         return app.run (args);
     }

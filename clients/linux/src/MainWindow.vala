@@ -262,6 +262,7 @@ public class MainWindow : Adw.ApplicationWindow {
 
             update_status ("Connected");
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "FullRefresh failed", e);
             update_status ("Error: %s".printf (e.message));
         }
     }
@@ -339,6 +340,7 @@ public class MainWindow : Adw.ApplicationWindow {
             }
             update_status ("Synced at %s".printf (new DateTime.now_local ().format ("%H:%M:%S")));
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "Sync failed", e);
             update_status ("Sync error: %s".printf (e.message));
         }
     }
@@ -431,6 +433,7 @@ public class MainWindow : Adw.ApplicationWindow {
         try {
             yield api_client.reorder_items_async (selected_list_id, current_items);
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "Reorder failed", e);
             update_status ("Reorder error: %s".printf (e.message));
         }
     }
@@ -456,6 +459,7 @@ public class MainWindow : Adw.ApplicationWindow {
                 }
             }
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "LoadItems failed", e);
             update_status ("Error: %s".printf (e.message));
         }
     }
@@ -487,6 +491,7 @@ public class MainWindow : Adw.ApplicationWindow {
                     list_sidebar.set_default_list_id (settings.default_list_id);
                 }
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "CreateList failed", e);
                 update_status ("Error: %s".printf (e.message));
             }
         }
@@ -537,6 +542,7 @@ public class MainWindow : Adw.ApplicationWindow {
                     ((Adw.WindowTitle) content_header.title_widget).title = updated.name;
                 }
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "RenameList failed", e);
                 update_status ("Error: %s".printf (e.message));
             }
         }
@@ -588,6 +594,7 @@ public class MainWindow : Adw.ApplicationWindow {
                     list_sidebar.set_default_list_id (-1);
                 }
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "DeleteList failed", e);
                 update_status ("Error: %s".printf (e.message));
             }
         }
@@ -634,6 +641,7 @@ public class MainWindow : Adw.ApplicationWindow {
                 current_items.add (new_item);
                 refresh_task_list ();
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "CreateTask failed", e);
                 update_status ("Error: %s".printf (e.message));
             }
         }
@@ -665,6 +673,7 @@ public class MainWindow : Adw.ApplicationWindow {
                 item.due_date = updated.due_date;
                 refresh_task_list ();
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "EditTask failed", e);
                 update_status ("Error: %s".printf (e.message));
             }
         }
@@ -676,6 +685,7 @@ public class MainWindow : Adw.ApplicationWindow {
             item.is_completed = updated.is_completed;
             refresh_task_list ();
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "ToggleComplete failed", e);
             update_status ("Error: %s".printf (e.message));
         }
     }
@@ -717,6 +727,7 @@ public class MainWindow : Adw.ApplicationWindow {
             try {
                 yield api_client.delete_item_async (to_delete[i]);
             } catch (Error e) {
+                RemoteLogger.error ("MainWindow", "Delete failed", e);
                 update_status ("Delete error: %s".printf (e.message));
             }
         }
@@ -749,6 +760,7 @@ public class MainWindow : Adw.ApplicationWindow {
             current_items.add (new_item);
             refresh_task_list ();
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "QuickAdd failed", e);
             update_status ("Error: %s".printf (e.message));
         }
     }
@@ -761,6 +773,7 @@ public class MainWindow : Adw.ApplicationWindow {
             categories = yield api_client.get_categories_async ();
             refresh_task_list ();
         } catch (Error e) {
+            RemoteLogger.error ("MainWindow", "RefreshCategories failed", e);
             update_status ("Error: %s".printf (e.message));
         }
     }

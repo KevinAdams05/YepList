@@ -40,4 +40,5 @@
     <string name="edit_category">Edit Category</string>
     <string name="delete_category">Delete Category</string>
     <string name="task_deleted">"%s" deleted</string>
+    <string name="sync_interval">Sync Interval</string>
 </resources>

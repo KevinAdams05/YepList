@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ToDoList.Windows.ApiClient;
 using ToDoList.Windows.Controls;
+using ToDoList.Windows.Debug;
 using ToDoList.Windows.Models;
 
 namespace ToDoList.Windows.Forms
@@ -432,6 +433,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "FullRefresh failed", ex);
                 UpdateStatus($"Error: {ex.Message}");
             }
         }
@@ -510,6 +512,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "Sync failed", ex);
                 UpdateStatus($"Sync error: {ex.Message}");
             }
         }
@@ -722,6 +725,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "LoadTasks failed", ex);
                 UpdateStatus($"Error loading tasks: {ex.Message}");
             }
         }
@@ -737,6 +741,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "ToggleComplete failed", ex);
                 UpdateStatus($"Error: {ex.Message}");
             }
         }
@@ -760,6 +765,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "CreateTask failed", ex);
                 UpdateStatus($"Error creating task: {ex.Message}");
             }
         }
@@ -787,7 +793,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    UpdateStatus($"Error creating task: {ex.Message}");
+                    RemoteLogger.Error("MainForm", "CreateTask failed", ex);
+                UpdateStatus($"Error creating task: {ex.Message}");
                 }
             }
         }
@@ -818,7 +825,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    UpdateStatus($"Error updating task: {ex.Message}");
+                    RemoteLogger.Error("MainForm", "UpdateTask failed", ex);
+                UpdateStatus($"Error updating task: {ex.Message}");
                 }
             }
         }
@@ -851,7 +859,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    UpdateStatus($"Error deleting task: {ex.Message}");
+                    RemoteLogger.Error("MainForm", "DeleteTask failed", ex);
+                UpdateStatus($"Error deleting task: {ex.Message}");
                 }
             }
         }
@@ -912,6 +921,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "RenameList failed", ex);
                 UpdateStatus($"Error renaming list: {ex.Message}");
             }
         }
@@ -946,7 +956,8 @@ namespace ToDoList.Windows.Forms
                 }
                 catch (Exception ex)
                 {
-                    UpdateStatus($"Error deleting list: {ex.Message}");
+                    RemoteLogger.Error("MainForm", "DeleteList failed", ex);
+                UpdateStatus($"Error deleting list: {ex.Message}");
                 }
             }
         }
@@ -1164,6 +1175,7 @@ namespace ToDoList.Windows.Forms
             }
             catch (Exception ex)
             {
+                RemoteLogger.Error("MainForm", "Reorder failed", ex);
                 UpdateStatus($"Error saving order: {ex.Message}");
             }
         }

@@ -24,6 +24,8 @@ import kotlinx.coroutines.runBlocking
 
 class AppContainer(context: Context) {
 
+    private val appContext: Context = context.applicationContext
+
     val prefs: SharedPreferences =
         context.getSharedPreferences("yeplist_prefs", Context.MODE_PRIVATE)
 
@@ -73,7 +75,7 @@ class AppContainer(context: Context) {
         PendingOperationProcessor(apiService, pendingOperationDao, idRemapper, gson)
     }
     val syncManager: SyncManager by lazy {
-        SyncManager(syncRepository, pendingOperationProcessor, connectivityMonitor)
+        SyncManager(appContext, syncRepository, pendingOperationProcessor, connectivityMonitor)
     }
 
     init {
@@ -95,5 +97,7 @@ class AppContainer(context: Context) {
         const val DEFAULT_SERVER_URL = "http://192.168.74.122:5000"
         const val PREF_SERVER_URL = "server_url"
         const val PREF_DEFAULT_LIST_ID = "default_list_id"
+        const val PREF_SYNC_INTERVAL = "sync_interval_seconds"
+        const val DEFAULT_SYNC_INTERVAL = 30L
     }
 }

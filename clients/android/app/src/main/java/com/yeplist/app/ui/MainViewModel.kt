@@ -71,10 +71,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun startForegroundSync() {
         syncJob = viewModelScope.launch {
             while (true) {
-                delay(30_000)
+                val intervalMs = container.prefs.getLong(
+                    AppContainer.PREF_SYNC_INTERVAL,
+                    AppContainer.DEFAULT_SYNC_INTERVAL
+                ) * 1000
+                delay(intervalMs)
                 container.syncManager.sync()
             }
         }
+    }
+
+    fun restartForegroundSync() {
+        syncJob?.cancel()
+        startForegroundSync()
     }
 
     fun getDefaultListId(): Long {

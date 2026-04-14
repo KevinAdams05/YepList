@@ -79,6 +79,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Restart sync loop when settings are saved
+        supportFragmentManager.setFragmentResultListener(
+            SettingsDialogFragment.RESULT_KEY, this
+        ) { _, _ ->
+            viewModel.restartForegroundSync()
+        }
+
         // Trigger initial sync
         viewModel.sync()
     }
