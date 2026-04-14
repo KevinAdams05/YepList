@@ -15,6 +15,7 @@ SRC_DIR="$SCRIPT_DIR/../backend"
 LINUX_SRC_DIR="$SCRIPT_DIR/../clients/linux"
 LINUX_REMOTE_DIR="/home/$USER/yeplist-linux"
 PUBLISH_DIR="/tmp/yeplist-publish"
+SHARE_DIR="//storage01/Files/YepList"
 
 # ── Colors ─────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -92,7 +93,7 @@ deploy_linux() {
         err "Linux client source not found at $LINUX_SRC_DIR/src"
     fi
 
-    log "1/3 Syncing source to ${USER}@${HOST}:${LINUX_REMOTE_DIR}..."
+    log "1/5 Syncing source to ${USER}@${HOST}:${LINUX_REMOTE_DIR}..."
     ssh "${USER}@${HOST}" "mkdir -p $LINUX_REMOTE_DIR"
     scp -q "$LINUX_SRC_DIR/meson.build" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
     scp -qr "$LINUX_SRC_DIR/src" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
@@ -101,7 +102,7 @@ deploy_linux() {
     fi
     ok "Source uploaded"
 
-    log "2/3 Building on $HOST..."
+    log "2/5 Building on $HOST..."
     ssh "${USER}@${HOST}" bash -s <<EOF
         set -e
         cd $LINUX_REMOTE_DIR
@@ -114,13 +115,25 @@ deploy_linux() {
 EOF
     ok "Build succeeded"
 
-    log "3/3 Installing..."
+    log "3/5 Installing..."
     ssh "${USER}@${HOST}" bash -s <<EOF
         set -e
         cd $LINUX_REMOTE_DIR
         sudo ninja -C builddir install
 EOF
     ok "Installed to /usr/local/bin/yep-list on $HOST"
+
+    log "4/5 Fetching binary from $HOST..."
+    local local_bin="/tmp/yep-list"
+    scp -q "${USER}@${HOST}:${LINUX_REMOTE_DIR}/builddir/yep-list" "$local_bin"
+    ok "Downloaded yep-list binary"
+
+    log "5/5 Copying to network share ($SHARE_DIR)..."
+    mkdir -p "$SHARE_DIR"
+    cp "$local_bin" "$SHARE_DIR/yep-list"
+    rm -f "$local_bin"
+    ok "Copied yep-list to $SHARE_DIR"
+
     echo ""
     log "Run with: yep-list --server http://localhost:5000"
 }

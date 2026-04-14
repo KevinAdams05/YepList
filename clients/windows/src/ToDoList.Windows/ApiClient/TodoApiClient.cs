@@ -109,10 +109,11 @@ namespace ToDoList.Windows.ApiClient
         }
 
         public async Task<TodoItem> UpdateItemAsync(long itemId, string title, string? notes,
-            long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder = 0)
+            long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder = 0,
+            long? listId = null)
         {
             HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/items/{itemId}",
-                new { title, notes, categoryId, isCompleted, dueDate, sortOrder });
+                new { title, notes, categoryId, listId, isCompleted, dueDate, sortOrder });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;

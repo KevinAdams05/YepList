@@ -51,7 +51,8 @@ namespace ToDoList.Api.Controllers
         {
             Core.Models.TodoItem? item = await itemRepository.UpdateAsync(
                 id, request.Title, request.Notes, request.CategoryId,
-                request.IsCompleted, request.DueDate, request.SortOrder);
+                request.IsCompleted, request.DueDate, request.SortOrder,
+                request.ListId);
             if (item == null)
             {
                 return NotFound();

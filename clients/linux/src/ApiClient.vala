@@ -125,7 +125,8 @@ public class ApiClient : Object {
     public async TodoItem update_item_async (int64 item_id, string title, string? notes,
                                               int64 category_id, bool has_category,
                                               bool is_completed, string? due_date,
-                                              int sort_order = 0) throws Error {
+                                              int sort_order = 0,
+                                              int64 list_id = -1) throws Error {
         var builder = new Json.Builder ();
         builder.begin_object ();
         builder.set_member_name ("title"); builder.add_string_value (title);
@@ -140,6 +141,9 @@ public class ApiClient : Object {
             builder.add_int_value (category_id);
         } else {
             builder.add_null_value ();
+        }
+        if (list_id > 0) {
+            builder.set_member_name ("listId"); builder.add_int_value (list_id);
         }
         builder.set_member_name ("isCompleted"); builder.add_boolean_value (is_completed);
         builder.set_member_name ("dueDate");

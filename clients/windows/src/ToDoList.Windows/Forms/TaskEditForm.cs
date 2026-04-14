@@ -12,12 +12,14 @@ namespace ToDoList.Windows.Forms
         private KryptonTextBox txtTitle = null!;
         private KryptonRichTextBox txtNotes = null!;
         private KryptonComboBox cboCategory = null!;
+        private KryptonComboBox cboList = null!;
         private KryptonCheckBox chkHasDueDate = null!;
         private KryptonDateTimePicker dtpDueDate = null!;
         private Controls.AccentButton btnSave = null!;
         private Controls.FlatButton btnCancel = null!;
 
         private readonly List<Category> categories;
+        private readonly List<TodoList> lists;
 
         public string TaskTitle => txtTitle.Text.Trim();
         public string? TaskNotes => string.IsNullOrWhiteSpace(txtNotes.Text) ? null : txtNotes.Text.Trim();
@@ -38,12 +40,30 @@ namespace ToDoList.Windows.Forms
             }
         }
         public DateTime? TaskDueDate => chkHasDueDate.Checked ? dtpDueDate.Value.Date : null;
+        public long? SelectedListId
+        {
+            get
+            {
+                if (cboList.SelectedIndex < 0)
+                {
+                    return null;
+                }
+                if (cboList.Items[cboList.SelectedIndex] is TodoList list)
+                {
+                    return list.ListId;
+                }
 
-        public TaskEditForm(List<Category> categories, TodoItem? existingItem)
+                return null;
+            }
+        }
+
+        public TaskEditForm(List<Category> categories, List<TodoList> lists, TodoItem? existingItem)
         {
             this.categories = categories;
+            this.lists = lists;
             InitializeComponents();
             PopulateCategories();
+            PopulateLists(existingItem);
             AppTheme.StyleForm(this);
 
             if (existingItem != null)
@@ -76,7 +96,7 @@ namespace ToDoList.Windows.Forms
         private void InitializeComponents()
         {
             Text = "New Task";
-            Size = new Size(500, 400);
+            Size = new Size(500, 440);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -105,6 +125,17 @@ namespace ToDoList.Windows.Forms
             KryptonLabel lblCategory = new KryptonLabel { Text = "Category", Location = new Point(24, y + 4), AutoSize = true };
             lblCategory.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
             cboCategory = new KryptonComboBox
+            {
+                Location = new Point(controlLeft, y),
+                Width = controlWidth,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            y += 40;
+
+            // List (only visible in edit mode)
+            KryptonLabel lblList = new KryptonLabel { Text = "List", Location = new Point(24, y + 4), AutoSize = true };
+            lblList.StateCommon.ShortText.Font = new Font("Segoe UI", 9.5f);
+            cboList = new KryptonComboBox
             {
                 Location = new Point(controlLeft, y),
                 Width = controlWidth,
@@ -162,6 +193,7 @@ namespace ToDoList.Windows.Forms
                 lblTitle, txtTitle,
                 lblNotes, txtNotes,
                 lblCategory, cboCategory,
+                lblList, cboList,
                 chkHasDueDate, dtpDueDate,
                 btnSave, btnCancel
             });
@@ -176,6 +208,32 @@ namespace ToDoList.Windows.Forms
                 cboCategory.Items.Add(cat);
             }
             cboCategory.SelectedIndex = 0;
+        }
+
+        private void PopulateLists(TodoItem? existingItem)
+        {
+            cboList.Items.Clear();
+            foreach (TodoList list in lists)
+            {
+                cboList.Items.Add(list);
+            }
+
+            if (existingItem != null && lists.Count > 1)
+            {
+                cboList.Visible = true;
+                for (int i = 0; i < lists.Count; i++)
+                {
+                    if (lists[i].ListId == existingItem.ListId)
+                    {
+                        cboList.SelectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                cboList.Visible = false;
+            }
         }
     }
 }

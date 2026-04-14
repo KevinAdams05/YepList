@@ -99,9 +99,10 @@ class TaskListViewModel(application: Application) : AndroidViewModel(application
         categoryId: Long?,
         isCompleted: Boolean,
         dueDate: String?,
-        sortOrder: Int
+        sortOrder: Int,
+        listId: Long? = null
     ) {
-        container.todoItemRepository.update(itemId, title, notes, categoryId, isCompleted, dueDate, sortOrder)
+        container.todoItemRepository.update(itemId, title, notes, categoryId, isCompleted, dueDate, sortOrder, listId)
         pushIfOnline()
     }
 

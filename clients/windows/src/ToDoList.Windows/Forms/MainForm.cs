@@ -780,7 +780,7 @@ namespace ToDoList.Windows.Forms
                 return;
             }
 
-            using TaskEditForm form = new TaskEditForm(categories, null);
+            using TaskEditForm form = new TaskEditForm(categories, lists, null);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 try
@@ -808,19 +808,35 @@ namespace ToDoList.Windows.Forms
 
             TodoItem item = selectedTaskPanels[0].Item;
 
-            using TaskEditForm form = new TaskEditForm(categories, item);
+            using TaskEditForm form = new TaskEditForm(categories, lists, item);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 try
                 {
+                    long? newListId = null;
+                    if (form.SelectedListId.HasValue && form.SelectedListId.Value != item.ListId)
+                    {
+                        newListId = form.SelectedListId.Value;
+                    }
+
                     TodoItem updated = await apiClient.UpdateItemAsync(
                         item.ItemId, form.TaskTitle, form.TaskNotes,
-                        form.SelectedCategoryId, item.IsCompleted, form.TaskDueDate, item.SortOrder);
-                    item.Title = updated.Title;
-                    item.Notes = updated.Notes;
-                    item.CategoryId = updated.CategoryId;
-                    item.DueDate = updated.DueDate;
-                    item.ModifiedDate = updated.ModifiedDate;
+                        form.SelectedCategoryId, item.IsCompleted, form.TaskDueDate, item.SortOrder,
+                        newListId);
+
+                    if (newListId.HasValue)
+                    {
+                        // Task moved to another list — remove from current view
+                        currentItems.Remove(item);
+                    }
+                    else
+                    {
+                        item.Title = updated.Title;
+                        item.Notes = updated.Notes;
+                        item.CategoryId = updated.CategoryId;
+                        item.DueDate = updated.DueDate;
+                        item.ModifiedDate = updated.ModifiedDate;
+                    }
                     RefreshTaskList();
                 }
                 catch (Exception ex)

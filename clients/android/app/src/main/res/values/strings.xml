@@ -41,4 +41,11 @@
     <string name="delete_category">Delete Category</string>
     <string name="task_deleted">"%s" deleted</string>
     <string name="sync_interval">Sync Interval</string>
+    <string name="list">List</string>
+    <string name="move_to_list">Move to List</string>
+    <string name="custom_color_hint">Custom (#FF5733)</string>
+    <string name="about_author">by Kevin Adams</string>
+    <string name="about_license">Licensed under the MIT License</string>
+    <string name="about_third_party">Third-Party Libraries</string>
+    <string name="about_libraries">Kotlin (Apache 2.0) \u2014 JetBrains\nRetrofit 2 (Apache 2.0) \u2014 Square\nOkHttp (Apache 2.0) \u2014 Square\nGson (Apache 2.0) \u2014 Google\nRoom (Apache 2.0) \u2014 Google\nJetpack Glance (Apache 2.0) \u2014 Google\nWorkManager (Apache 2.0) \u2014 Google\nMaterial Components (Apache 2.0) \u2014 Google</string>
 </resources>

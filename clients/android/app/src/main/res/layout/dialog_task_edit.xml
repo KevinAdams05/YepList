@@ -44,6 +44,24 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- List dropdown (for moving tasks) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/listDropdownLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="@string/list"
+            android:visibility="gone"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+                android:id="@+id/listDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Category dropdown -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

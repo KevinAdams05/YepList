@@ -68,6 +68,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun fullRefresh() {
+        viewModelScope.launch {
+            container.syncRepository.resetSyncTime()
+            container.syncManager.sync()
+        }
+    }
+
     private fun startForegroundSync() {
         syncJob = viewModelScope.launch {
             while (true) {

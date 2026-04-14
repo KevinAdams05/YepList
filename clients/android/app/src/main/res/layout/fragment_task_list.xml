@@ -10,17 +10,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Sync status bar -->
-        <TextView
-            android:id="@+id/syncStatusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:gravity="center"
-            android:paddingVertical="4dp"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
-            android:visibility="gone" />
-
         <!-- Empty state -->
         <TextView
             android:id="@+id/emptyText"
@@ -64,6 +53,17 @@
                 android:maxLines="1" />
 
         </LinearLayout>
+
+        <!-- Sync status bar (fixed at bottom) -->
+        <TextView
+            android:id="@+id/syncStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceVariant"
+            android:gravity="center"
+            android:paddingVertical="4dp"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:visibility="gone" />
 
     </LinearLayout>
 

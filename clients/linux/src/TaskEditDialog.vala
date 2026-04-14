@@ -2,10 +2,12 @@ public class TaskEditDialog : Adw.AlertDialog {
     private Gtk.Entry title_entry;
     private Gtk.TextView notes_view;
     private Gtk.DropDown category_dropdown;
+    private Gtk.DropDown? list_dropdown = null;
     private Gtk.CheckButton due_date_check;
     private Gtk.Calendar calendar;
 
     private GenericArray<Category> categories;
+    private GenericArray<TodoList> lists;
 
     public string task_title {
         owned get { return title_entry.text.strip (); }
@@ -35,6 +37,19 @@ public class TaskEditDialog : Adw.AlertDialog {
         }
     }
 
+    public int64 selected_list_id {
+        get {
+            if (list_dropdown == null) {
+                return -1;
+            }
+            uint pos = list_dropdown.selected;
+            if (pos == Gtk.INVALID_LIST_POSITION || pos >= lists.length) {
+                return -1;
+            }
+            return lists[pos].list_id;
+        }
+    }
+
     public string? task_due_date {
         owned get {
             if (!due_date_check.active) {
@@ -45,11 +60,13 @@ public class TaskEditDialog : Adw.AlertDialog {
         }
     }
 
-    public TaskEditDialog (TodoItem? existing, GenericArray<Category> categories) {
+    public TaskEditDialog (TodoItem? existing, GenericArray<Category> categories,
+                           GenericArray<TodoList>? lists = null) {
         string dialog_title = existing != null ? "Edit Task" : "New Task";
         Object (heading: dialog_title);
 
         this.categories = categories;
+        this.lists = lists ?? new GenericArray<TodoList> ();
 
         add_response ("cancel", "Cancel");
         add_response ("save", "Save");
@@ -124,6 +141,32 @@ public class TaskEditDialog : Adw.AlertDialog {
         }
         category_box.append (category_dropdown);
         box.append (category_box);
+
+        // List (only in edit mode with multiple lists)
+        if (existing != null && lists.length > 1) {
+            var list_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
+            var list_label = new Gtk.Label ("List");
+            list_label.halign = Gtk.Align.START;
+            list_label.add_css_class ("heading");
+            list_box.append (list_label);
+
+            var list_strings = new string[lists.length];
+            for (uint i = 0; i < lists.length; i++) {
+                list_strings[i] = lists[i].name;
+            }
+            list_dropdown = new Gtk.DropDown.from_strings (list_strings);
+            list_dropdown.selected = 0;
+
+            for (uint i = 0; i < lists.length; i++) {
+                if (lists[i].list_id == existing.list_id) {
+                    list_dropdown.selected = i;
+                    break;
+                }
+            }
+
+            list_box.append (list_dropdown);
+            box.append (list_box);
+        }
 
         // Due date
         var due_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);

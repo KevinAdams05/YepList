@@ -14,6 +14,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.yeplist.app.R
 import com.yeplist.app.data.local.entity.CategoryEntity
+import com.yeplist.app.data.local.entity.TodoListEntity
 import com.yeplist.app.ui.MainViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -29,7 +30,9 @@ class TaskEditDialogFragment : DialogFragment() {
 
     private var selectedCategoryId: Long? = null
     private var selectedDueDate: String? = null
+    private var selectedListId: Long? = null
     private var categories: List<CategoryEntity> = emptyList()
+    private var lists: List<TodoListEntity> = emptyList()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val itemId = arguments?.getLong(ARG_ITEM_ID, 0) ?: 0
@@ -40,8 +43,11 @@ class TaskEditDialogFragment : DialogFragment() {
         val notesEdit = view.findViewById<TextInputEditText>(R.id.notesEditText)
         val categoryDropdown = view.findViewById<AutoCompleteTextView>(R.id.categoryDropdown)
         val dueDateEdit = view.findViewById<TextInputEditText>(R.id.dueDateEditText)
+        val listDropdownLayout = view.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.listDropdownLayout)
+        val listDropdown = view.findViewById<AutoCompleteTextView>(R.id.listDropdown)
 
         categories = mainViewModel.categories.value
+        lists = mainViewModel.lists.value
 
         // Populate category dropdown
         val categoryNames = mutableListOf(getString(R.string.none))
@@ -82,6 +88,7 @@ class TaskEditDialogFragment : DialogFragment() {
                 notesEdit.setText(item.notes ?: "")
                 selectedCategoryId = item.categoryId
                 selectedDueDate = item.dueDate
+                selectedListId = item.listId
 
                 val catIndex = categories.indexOfFirst { it.categoryId == item.categoryId }
                 if (catIndex >= 0) {
@@ -96,6 +103,21 @@ class TaskEditDialogFragment : DialogFragment() {
                         dueDateEdit.setText(date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)))
                     } catch (e: Exception) {
                         // Invalid date format
+                    }
+                }
+
+                // Show list dropdown for moving task
+                if (lists.size > 1) {
+                    listDropdownLayout.visibility = android.view.View.VISIBLE
+                    val listNames = lists.map { it.name }
+                    val listAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, listNames)
+                    listDropdown.setAdapter(listAdapter)
+                    val currentListIndex = lists.indexOfFirst { it.listId == item.listId }
+                    if (currentListIndex >= 0) {
+                        listDropdown.setText(lists[currentListIndex].name, false)
+                    }
+                    listDropdown.setOnItemClickListener { _, _, position, _ ->
+                        selectedListId = lists[position].listId
                     }
                 }
             }
@@ -113,6 +135,11 @@ class TaskEditDialogFragment : DialogFragment() {
                         if (isEdit) {
                             val item = taskViewModel.items.value.firstOrNull { it.itemId == itemId }
                             if (item != null) {
+                                val newListId = if (selectedListId != null && selectedListId != item.listId) {
+                                    selectedListId
+                                } else {
+                                    null
+                                }
                                 taskViewModel.updateItem(
                                     itemId = itemId,
                                     title = title,
@@ -120,7 +147,8 @@ class TaskEditDialogFragment : DialogFragment() {
                                     categoryId = selectedCategoryId,
                                     isCompleted = item.isCompleted,
                                     dueDate = selectedDueDate,
-                                    sortOrder = item.sortOrder
+                                    sortOrder = item.sortOrder,
+                                    listId = newListId
                                 )
                             }
                         } else {

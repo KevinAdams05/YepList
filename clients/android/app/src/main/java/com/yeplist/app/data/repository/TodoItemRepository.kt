@@ -70,7 +70,8 @@ class TodoItemRepository(
         categoryId: Long?,
         isCompleted: Boolean,
         dueDate: String?,
-        sortOrder: Int
+        sortOrder: Int,
+        listId: Long? = null
     ) {
         val existing = itemDao.getById(itemId) ?: return
         val updated = existing.copy(
@@ -80,12 +81,13 @@ class TodoItemRepository(
             isCompleted = isCompleted,
             dueDate = dueDate,
             sortOrder = sortOrder,
+            listId = listId ?: existing.listId,
             modifiedDate = Instant.now().toString()
         )
         itemDao.upsert(updated)
 
         val payload = gson.toJson(
-            UpdateTodoItemRequest(title, notes, categoryId, isCompleted, dueDate, sortOrder)
+            UpdateTodoItemRequest(title, notes, categoryId, listId, isCompleted, dueDate, sortOrder)
         )
         if (itemId < 0) {
             val ops = pendingOpDao.getByEntity("item", itemId)

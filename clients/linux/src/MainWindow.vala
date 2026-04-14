@@ -653,10 +653,15 @@ public class MainWindow : Adw.ApplicationWindow {
     }
 
     private async void show_edit_task_dialog (TodoItem item) {
-        var dialog = new TaskEditDialog (item, categories);
+        var dialog = new TaskEditDialog (item, categories, lists);
         var response = yield dialog.choose (this, null);
         if (response == "save") {
             try {
+                int64 new_list_id = -1;
+                if (dialog.selected_list_id > 0 && dialog.selected_list_id != item.list_id) {
+                    new_list_id = dialog.selected_list_id;
+                }
+
                 var updated = yield api_client.update_item_async (
                     item.item_id,
                     dialog.task_title,
@@ -665,12 +670,24 @@ public class MainWindow : Adw.ApplicationWindow {
                     dialog.has_selected_category,
                     item.is_completed,
                     dialog.task_due_date,
-                    item.sort_order);
-                item.title = updated.title;
-                item.notes = updated.notes;
-                item.category_id = updated.category_id;
-                item.has_category = updated.has_category;
-                item.due_date = updated.due_date;
+                    item.sort_order,
+                    new_list_id);
+
+                if (new_list_id > 0) {
+                    // Task moved to another list — remove from current view
+                    for (uint i = 0; i < current_items.length; i++) {
+                        if (current_items[i].item_id == item.item_id) {
+                            current_items.remove_index (i);
+                            break;
+                        }
+                    }
+                } else {
+                    item.title = updated.title;
+                    item.notes = updated.notes;
+                    item.category_id = updated.category_id;
+                    item.has_category = updated.has_category;
+                    item.due_date = updated.due_date;
+                }
                 refresh_task_list ();
             } catch (Error e) {
                 RemoteLogger.error ("MainWindow", "EditTask failed", e);

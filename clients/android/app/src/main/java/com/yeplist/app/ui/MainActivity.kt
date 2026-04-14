@@ -1,8 +1,11 @@
 package com.yeplist.app.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -98,7 +101,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                viewModel.sync()
+                viewModel.fullRefresh()
                 true
             }
             R.id.action_settings -> {
@@ -106,14 +109,29 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_about -> {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.app_name)
-                    .setMessage("YepList v${packageManager.getPackageInfo(packageName, 0).versionName}")
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                showAboutDialog()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showAboutDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_about, null)
+
+        // Set logo based on dark/light mode
+        val logoView = view.findViewById<ImageView>(R.id.aboutLogo)
+        val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        logoView.setImageResource(if (isDark) R.drawable.logo_light else R.drawable.logo_dark)
+
+        // Set version
+        val versionText = view.findViewById<TextView>(R.id.aboutVersion)
+        val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+        versionText.text = "Version $versionName"
+
+        MaterialAlertDialogBuilder(this)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 }

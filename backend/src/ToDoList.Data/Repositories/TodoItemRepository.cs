@@ -67,15 +67,24 @@ namespace ToDoList.Data.Repositories
         }
 
         public async Task<TodoItem?> UpdateAsync(long itemId, string title, string? notes,
-            long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder)
+            long? categoryId, bool isCompleted, DateTime? dueDate, int sortOrder,
+            long? listId = null)
         {
             using IDbConnection conn = connectionFactory.CreateConnection();
             conn.Open();
-            int rowsAffected = await conn.ExecuteAsync(
-                "UPDATE todo_item SET title = @Title, notes = @Notes, " +
+
+            string sql = "UPDATE todo_item SET title = @Title, notes = @Notes, " +
                 "category_id = @CategoryId, is_completed = @IsCompleted, " +
-                "due_date = @DueDate, sort_order = @SortOrder " +
-                "WHERE item_id = @ItemId",
+                "due_date = @DueDate, sort_order = @SortOrder";
+
+            if (listId.HasValue)
+            {
+                sql += ", list_id = @ListId";
+            }
+
+            sql += " WHERE item_id = @ItemId";
+
+            int rowsAffected = await conn.ExecuteAsync(sql,
                 new
                 {
                     ItemId = itemId,
@@ -84,7 +93,8 @@ namespace ToDoList.Data.Repositories
                     CategoryId = categoryId,
                     IsCompleted = isCompleted,
                     DueDate = dueDate,
-                    SortOrder = sortOrder
+                    SortOrder = sortOrder,
+                    ListId = listId
                 });
 
             if (rowsAffected == 0)
