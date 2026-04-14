@@ -9,8 +9,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -31,7 +31,6 @@ import androidx.glance.text.TextStyle
 import com.yeplist.app.YepListApp
 import com.yeplist.app.data.local.entity.TodoItemEntity
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.action.actionStartActivity
 import com.yeplist.app.debug.RemoteLogger
 import com.yeplist.app.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +77,7 @@ class TaskListWidget : GlanceAppWidget() {
                 .fillMaxSize()
                 .appWidgetBackground()
                 .background(GlanceTheme.colors.widgetBackground)
-                .clickable(actionStartActivity<WidgetConfigActivity>()),
+                .clickable(androidx.glance.action.actionStartActivity<WidgetConfigActivity>()),
             contentAlignment = Alignment.Center
         ) {
             Text(

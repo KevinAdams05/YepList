@@ -94,7 +94,11 @@ deploy_linux() {
         err "Linux client source not found at $LINUX_SRC_DIR/src"
     fi
 
-    log "1/5 Syncing source to ${USER}@${HOST}:${LINUX_REMOTE_DIR}..."
+    # Read version from meson.build
+    local version
+    version=$(grep "version:" "$LINUX_SRC_DIR/meson.build" | head -1 | sed "s/.*'\(.*\)'.*/\1/")
+
+    log "1/6 Syncing source to ${USER}@${HOST}:${LINUX_REMOTE_DIR}..."
     ssh "${USER}@${HOST}" "mkdir -p $LINUX_REMOTE_DIR"
     scp -q "$LINUX_SRC_DIR/meson.build" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
     scp -qr "$LINUX_SRC_DIR/src" "${USER}@${HOST}:${LINUX_REMOTE_DIR}/"
@@ -103,40 +107,87 @@ deploy_linux() {
     fi
     ok "Source uploaded"
 
-    log "2/5 Building on $HOST..."
+    log "2/6 Building on $HOST..."
     ssh "${USER}@${HOST}" bash -s <<EOF
         set -e
         cd $LINUX_REMOTE_DIR
 
         if [ ! -d builddir ]; then
-            meson setup builddir
+            meson setup builddir --prefix=/usr
+        else
+            meson setup builddir --prefix=/usr --reconfigure
         fi
 
         ninja -C builddir
 EOF
     ok "Build succeeded"
 
-    log "3/5 Installing..."
+    log "3/6 Installing on $HOST..."
     ssh "${USER}@${HOST}" bash -s <<EOF
         set -e
         cd $LINUX_REMOTE_DIR
         sudo ninja -C builddir install
 EOF
-    ok "Installed to /usr/local/bin/yep-list on $HOST"
+    ok "Installed to /usr/bin/yep-list on $HOST"
 
-    log "4/5 Fetching binary from $HOST..."
+    log "4/6 Building .deb package on $HOST..."
+    ssh "${USER}@${HOST}" bash -s <<DEBEOF
+        set -e
+        cd $LINUX_REMOTE_DIR
+
+        DEB_DIR=/tmp/yeplist-deb
+        rm -rf \$DEB_DIR
+
+        # Assemble deb directory structure from build artifacts
+        mkdir -p \$DEB_DIR/usr/bin
+        mkdir -p \$DEB_DIR/usr/share/applications
+        mkdir -p \$DEB_DIR/usr/share/icons/hicolor/256x256/apps
+        mkdir -p \$DEB_DIR/usr/share/yep-list
+
+        cp builddir/yep-list \$DEB_DIR/usr/bin/
+        cp data/com.github.kevinadams05.yeplist.desktop \$DEB_DIR/usr/share/applications/
+        cp data/yeplist.png \$DEB_DIR/usr/share/icons/hicolor/256x256/apps/com.github.kevinadams05.yeplist.png
+        cp data/logo-dark.png \$DEB_DIR/usr/share/yep-list/
+        cp data/logo-light.png \$DEB_DIR/usr/share/yep-list/
+
+        mkdir -p \$DEB_DIR/DEBIAN
+        cat > \$DEB_DIR/DEBIAN/control <<CTRL
+Package: yeplist
+Version: $version
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libgtk-4-1, libadwaita-1-0, libsoup-3.0-0, libjson-glib-1.0-0
+Maintainer: Kevin Adams
+Description: YepList - A simple cross-platform to-do list app
+ GTK4/libadwaita client for the YepList task management system.
+ Syncs with a central REST API server.
+CTRL
+
+        dpkg-deb --build \$DEB_DIR /tmp/yeplist_${version}_amd64.deb
+DEBEOF
+    ok "Built yeplist_${version}_amd64.deb"
+
+    log "5/6 Fetching binary and .deb from $HOST..."
     local local_bin="/tmp/yep-list"
+    local local_deb="/tmp/yeplist_${version}_amd64.deb"
     scp -q "${USER}@${HOST}:${LINUX_REMOTE_DIR}/builddir/yep-list" "$local_bin"
-    ok "Downloaded yep-list binary"
+    scp -q "${USER}@${HOST}:/tmp/yeplist_${version}_amd64.deb" "$local_deb"
+    ok "Downloaded binary and .deb"
 
-    log "5/5 Copying to network share ($SHARE_DIR)..."
+    log "6/6 Copying to network share ($SHARE_DIR)..."
     mkdir -p "$SHARE_DIR"
     cp "$local_bin" "$SHARE_DIR/yep-list"
-    rm -f "$local_bin"
-    ok "Copied yep-list to $SHARE_DIR"
+    cp "$local_deb" "$SHARE_DIR/yeplist_${version}_amd64.deb"
+    rm -f "$local_bin" "$local_deb"
+    ok "Copied yep-list and .deb to $SHARE_DIR"
 
     echo ""
-    log "Run with: yep-list --server http://localhost:5000"
+    log "Install on other machines:"
+    log "  sudo dpkg -i $SHARE_DIR/yeplist_${version}_amd64.deb"
+    log "  sudo apt-get -f install   # if missing dependencies"
+    log ""
+    log "Run with: yep-list --server http://<server>:5000"
 }
 
 deploy_android() {
