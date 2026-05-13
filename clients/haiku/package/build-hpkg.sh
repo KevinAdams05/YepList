@@ -112,6 +112,7 @@ INCLUDES=(
 	-I"$HAIKU_HEADERS/os/support"
 	-I"$HAIKU_HEADERS/os/kernel"
 	-I"$HAIKU_HEADERS/os/net"
+	-I"$HAIKU_HEADERS/os/translation"
 	-I"$HAIKU_HEADERS/posix"
 	-I"$HAIKU_HEADERS/config"
 	-I"$HAIKU_HEADERS/private/interface"
@@ -150,7 +151,7 @@ echo "==> Linking..."
 	-Wl,-rpath-link,"$HAIKU_RUNTIME_LIB" \
 	-Wl,-rpath-link,"$GCC_SYSLIBS" \
 	-shared-libgcc \
-	-lbe -lbnetapi -lroot -lstdc++ -lgcc_s \
+	-lbe -lbnetapi -ltranslation -lroot -lstdc++ -lgcc_s \
 	"$HAIKU_DEVEL_LIB/libnetservices2.a" \
 	"$HAIKU_DEVEL_LIB/libshared.a" \
 	"$HAIKU_DEVEL_LIB/liblocalestub.a" \
@@ -182,10 +183,14 @@ mkdir -p "$PKG_ROOT/data/deskbar/menu/Applications"
 ln -sf ../../../../apps/YepList \
 	"$PKG_ROOT/data/deskbar/menu/Applications/YepList"
 
-# Bundle the changelog alongside the app so AboutWindow can find it
+# Bundle data files alongside the app so the binary can find them via
+# its parent directory at runtime.
 mkdir -p "$PKG_ROOT/apps/data"
 if [ -f "$DATA/CHANGELOG.md" ]; then
 	cp "$DATA/CHANGELOG.md" "$PKG_ROOT/apps/data/CHANGELOG.md"
+fi
+if [ -f "$DATA/logo.png" ]; then
+	cp "$DATA/logo.png" "$PKG_ROOT/apps/data/logo.png"
 fi
 
 # Ship the MIT license under documentation/.

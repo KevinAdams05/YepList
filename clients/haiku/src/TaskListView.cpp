@@ -8,6 +8,9 @@
 
 #include <LayoutBuilder.h>
 #include <ListView.h>
+#include <MenuItem.h>
+#include <Messenger.h>
+#include <PopUpMenu.h>
 #include <ScrollView.h>
 #include <StringView.h>
 #include <TextControl.h>
@@ -19,6 +22,43 @@
 
 static const uint32 kMsgTaskInvoked		= 'tinv';
 static const uint32 kMsgQuickAddEnter	= 'qaen';
+static const uint32 kMsgTaskRightClick	= 'trck';
+static const uint32 kMsgContextEdit		= 'ctxe';
+static const uint32 kMsgContextDelete	= 'ctxd';
+
+
+// Custom BListView that forwards right-clicks to the parent so we can
+// show a context menu.
+class TaskContextListView : public BListView {
+public:
+	TaskContextListView(const char* name)
+		:
+		BListView(name, B_SINGLE_SELECTION_LIST)
+	{
+	}
+
+	virtual void MouseDown(BPoint where)
+	{
+		BMessage* message = Window()->CurrentMessage();
+		int32 buttons = 0;
+		if (message != NULL)
+			message->FindInt32("buttons", &buttons);
+
+		if (buttons & B_SECONDARY_MOUSE_BUTTON) {
+			int32 index = IndexOf(where);
+			if (index >= 0) {
+				Select(index);
+				BMessage rightClick(kMsgTaskRightClick);
+				rightClick.AddPoint("screen_where",
+					ConvertToScreen(where));
+				BMessenger(Parent()).SendMessage(&rightClick);
+			}
+			return;
+		}
+
+		BListView::MouseDown(where);
+	}
+};
 
 
 TaskListView::TaskListView()
@@ -33,7 +73,7 @@ TaskListView::TaskListView()
 	headerFont.SetSize(headerFont.Size() * 1.2f);
 	fHeaderView->SetFont(&headerFont);
 
-	fListView = new BListView("task_view", B_SINGLE_SELECTION_LIST);
+	fListView = new TaskContextListView("task_view");
 	fListView->SetInvocationMessage(new BMessage(kMsgTaskInvoked));
 	BScrollView* scrollView = new BScrollView("task_scroll",
 		fListView, 0, false, true);
@@ -101,6 +141,37 @@ TaskListView::MessageReceived(BMessage* message)
 			fQuickAddField->SetText("");
 			break;
 		}
+
+		case kMsgTaskRightClick:
+		{
+			BPoint screenWhere;
+			if (message->FindPoint("screen_where",
+				&screenWhere) != B_OK) {
+				break;
+			}
+
+			int32 index = fListView->CurrentSelection();
+			if (index < 0)
+				break;
+
+			BPopUpMenu* menu = new BPopUpMenu(
+				"task_context", false, false);
+			menu->AddItem(new BMenuItem("Edit Task" B_UTF8_ELLIPSIS,
+				new BMessage(kMsgContextEdit)));
+			menu->AddItem(new BMenuItem("Delete Task",
+				new BMessage(kMsgContextDelete)));
+			menu->SetTargetForItems(this);
+			menu->Go(screenWhere, true, true, true);
+			break;
+		}
+
+		case kMsgContextEdit:
+			Window()->PostMessage(kMsgEditTask);
+			break;
+
+		case kMsgContextDelete:
+			Window()->PostMessage(kMsgDeleteTask);
+			break;
 
 		default:
 			BView::MessageReceived(message);

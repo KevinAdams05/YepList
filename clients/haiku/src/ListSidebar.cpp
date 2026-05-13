@@ -6,13 +6,20 @@
 
 #include "ListSidebar.h"
 
+#include <Application.h>
+#include <Bitmap.h>
 #include <Button.h>
+#include <FindDirectory.h>
 #include <LayoutBuilder.h>
 #include <ListView.h>
 #include <MenuItem.h>
 #include <Messenger.h>
+#include <Path.h>
 #include <PopUpMenu.h>
+#include <Roster.h>
 #include <ScrollView.h>
+#include <StringView.h>
+#include <TranslationUtils.h>
 #include <Window.h>
 
 #include "ListItem.h"
@@ -64,8 +71,11 @@ ListSidebar::ListSidebar()
 	:
 	BView("list_sidebar", B_WILL_DRAW),
 	fListView(NULL),
-	fNewListButton(NULL)
+	fNewListButton(NULL),
+	fLogoBitmap(NULL)
 {
+	fLogoBitmap = _LoadLogo();
+
 	fListView = new ContextListView("list_view");
 	fListView->SetSelectionMessage(new BMessage(kMsgListSelChanged));
 	BScrollView* scrollView = new BScrollView("list_scroll",
@@ -75,12 +85,107 @@ ListSidebar::ListSidebar()
 		new BMessage(kMsgNewList));
 
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0.0f)
+		.Add(_BuildHeader())
 		.Add(scrollView, 1.0f)
 		.AddGroup(B_HORIZONTAL)
 			.Add(fNewListButton)
 			.SetInsets(B_USE_SMALL_SPACING)
 		.End()
 	;
+}
+
+
+ListSidebar::~ListSidebar()
+{
+	delete fLogoBitmap;
+}
+
+
+// Renders a logo (loaded from $appdir/data/logo.png) plus the bold
+// "YepList" text above the list of todo lists.
+class HeaderView : public BView {
+public:
+	HeaderView(BBitmap* logo)
+		:
+		BView("header", B_WILL_DRAW),
+		fLogo(logo)
+	{
+		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
+	}
+
+	virtual BSize MinSize()
+	{
+		return BSize(B_SIZE_UNSET, 56.0f);
+	}
+
+	virtual BSize PreferredSize()
+	{
+		return BSize(B_SIZE_UNSET, 56.0f);
+	}
+
+	virtual BSize MaxSize()
+	{
+		return BSize(B_SIZE_UNLIMITED, 56.0f);
+	}
+
+	virtual void Draw(BRect updateRect)
+	{
+		BRect bounds = Bounds();
+		const float padding = 8.0f;
+		const float logoSize = bounds.Height() - padding * 2.0f;
+
+		float textX = bounds.left + padding;
+		if (fLogo != NULL && fLogo->IsValid()) {
+			BRect dest(bounds.left + padding,
+				bounds.top + padding,
+				bounds.left + padding + logoSize,
+				bounds.top + padding + logoSize);
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(fLogo, fLogo->Bounds(), dest);
+			SetDrawingMode(B_OP_COPY);
+			textX = dest.right + padding;
+		}
+
+		BFont font(be_bold_font);
+		font.SetSize(font.Size() * 1.5f);
+		SetFont(&font);
+		SetHighUIColor(B_PANEL_TEXT_COLOR);
+
+		font_height fh;
+		font.GetHeight(&fh);
+		float baseline = bounds.top
+			+ (bounds.Height() + fh.ascent - fh.descent) / 2.0f;
+		DrawString("YepList", BPoint(textX, baseline));
+	}
+
+private:
+	BBitmap*	fLogo;
+};
+
+
+BView*
+ListSidebar::_BuildHeader()
+{
+	return new HeaderView(fLogoBitmap);
+}
+
+
+BBitmap*
+ListSidebar::_LoadLogo()
+{
+	// Logo is bundled at $appdir/data/logo.png by the build script.
+	app_info info;
+	if (be_app->GetAppInfo(&info) != B_OK)
+		return NULL;
+
+	BPath appPath(&info.ref);
+	BPath parent;
+	appPath.GetParent(&parent);
+
+	BString logoPath;
+	logoPath.SetToFormat("%s/data/logo.png", parent.Path());
+
+	return BTranslationUtils::GetBitmapFile(logoPath.String());
 }
 
 

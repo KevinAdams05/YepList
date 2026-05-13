@@ -25,13 +25,15 @@ class SyncManager(
     /**
      * Full sync cycle: push pending operations then pull from server.
      * Mutex-protected so only one sync runs at a time.
+     *
+     * Does NOT gate on ConnectivityMonitor — the flag races with cold
+     * app-launch and widget process restarts (NetworkCallback hasn't
+     * fired onAvailable yet), so a gate here would silently swallow
+     * the first sync. We just try the HTTP call and let it fail
+     * naturally if there's no network; the state becomes ERROR which
+     * the UI can show.
      */
     suspend fun sync() {
-        if (!connectivityMonitor.isOnline.value) {
-            _syncState.value = SyncState.OFFLINE
-            return
-        }
-
         mutex.withLock {
             try {
                 _syncState.value = SyncState.SYNCING
@@ -50,7 +52,9 @@ class SyncManager(
                 RemoteLogger.d(TAG, "sync: complete")
             } catch (e: Exception) {
                 RemoteLogger.e(TAG, "Sync failed", e)
-                _syncState.value = SyncState.ERROR
+                _syncState.value =
+                    if (connectivityMonitor.isOnline.value) SyncState.ERROR
+                    else SyncState.OFFLINE
             }
         }
     }
@@ -60,8 +64,6 @@ class SyncManager(
      * Used when a local write happens while online.
      */
     suspend fun pushOnly() {
-        if (!connectivityMonitor.isOnline.value) return
-
         mutex.withLock {
             try {
                 pendingProcessor.processAll()

@@ -13,7 +13,7 @@
 #include <MenuBar.h>
 #include <MenuItem.h>
 #include <MessageRunner.h>
-#include <SplitView.h>
+#include <Size.h>
 #include <StringView.h>
 #include <TimeFormat.h>
 
@@ -34,11 +34,10 @@ static const bigtime_t kSyncInterval = 30 * 1000000LL;	// 30 seconds
 
 MainWindow::MainWindow()
 	:
-	BWindow(BRect(100, 100, 1500, 800), "YepList",
+	BWindow(BRect(100, 100, 1000, 650), "YepList",
 		B_DOCUMENT_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS),
 	fMenuBar(NULL),
-	fSplitView(NULL),
 	fListSidebar(NULL),
 	fTaskListView(NULL),
 	fStatusBar(NULL),
@@ -69,6 +68,13 @@ void
 MainWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
+		// Menu invokes B_ABOUT_REQUESTED on the window by default;
+		// forward to the application so YepListApp::AboutRequested
+		// can show the AboutWindow.
+		case B_ABOUT_REQUESTED:
+			be_app->PostMessage(B_ABOUT_REQUESTED);
+			break;
+
 		// Sync timer
 		case kMsgSync:
 			_DoSync();
@@ -279,7 +285,7 @@ MainWindow::_BuildMenu()
 	editMenu->AddItem(new BMenuItem("Edit Task" B_UTF8_ELLIPSIS,
 		new BMessage(kMsgEditTask), 'E'));
 	editMenu->AddItem(new BMenuItem("Delete Task",
-		new BMessage(kMsgDeleteTask)));
+		new BMessage(kMsgDeleteTask), B_DELETE, 0));
 	editMenu->AddSeparatorItem();
 	editMenu->AddItem(new BMenuItem("New List" B_UTF8_ELLIPSIS,
 		new BMessage(kMsgNewList)));
@@ -297,13 +303,16 @@ MainWindow::_BuildLayout()
 	fStatusBar = new BStringView("statusbar", "Connecting...");
 	fStatusBar->SetAlignment(B_ALIGN_LEFT);
 
-	fSplitView = new BSplitView(B_HORIZONTAL, 5.0f);
+	// Fixed-width sidebar (matches the Windows client's 240px sidebar)
+	// with the task list filling the rest. No splitter — divider isn't
+	// draggable, which is consistent with the other clients.
+	fListSidebar->SetExplicitSize(BSize(240, B_SIZE_UNSET));
 
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0.0f)
 		.Add(fMenuBar)
-		.AddSplit(fSplitView)
-			.Add(fListSidebar, 0.25f)
-			.Add(fTaskListView, 0.75f)
+		.AddGroup(B_HORIZONTAL, 0.0f)
+			.Add(fListSidebar)
+			.Add(fTaskListView)
 		.End()
 		.AddGroup(B_HORIZONTAL, 0.0f)
 			.Add(fStatusBar)
@@ -311,11 +320,7 @@ MainWindow::_BuildLayout()
 		.End()
 	;
 
-	fSplitView->SetCollapsible(0, false);
-	fSplitView->SetCollapsible(1, false);
-
-	// Allow the user to resize freely from a sensible minimum.
-	SetSizeLimits(400, 4000, 300, 3000);
+	SetSizeLimits(500, 4000, 300, 3000);
 }
 
 

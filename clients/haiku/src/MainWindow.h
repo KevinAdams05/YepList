@@ -17,7 +17,6 @@
 
 class BMenuBar;
 class BMessageRunner;
-class BSplitView;
 class BStringView;
 
 class ListSidebar;
@@ -106,7 +105,6 @@ private:
 
 	// UI components
 			BMenuBar*			fMenuBar;
-			BSplitView*			fSplitView;
 			ListSidebar*		fListSidebar;
 			TaskListView*		fTaskListView;
 			BStringView*		fStatusBar;

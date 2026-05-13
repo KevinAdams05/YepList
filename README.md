@@ -1,9 +1,11 @@
 # YepList
 
 > [!WARNING]
-> This is very early beta code, use at your own risk. Data is not encrypted in the database and SSL is not forced. Intended for local network traffic only. Don't store any top secret data in this app.
+> This is beta code, use at your own risk. Data is not encrypted in the database and SSL is not forced. Intended for local network traffic only. Don't store any top secret data in this app.
 
-A selfhosted cross-platform (Windows/Linux/Android) To-Do list app. The backend consists of MySQL and C#/ASP.NET Core. Clients are available for Linux, Windows, and Android. 
+A selfhosted cross-platform (Windows/Linux/Haiku/Android) To-Do list app. The backend consists of MySQL and C#/ASP.NET Core. Clients are available for Linux, Windows, and Android. 
+
+The Android app has local caching, so if you add items when you are away from your network they will get synced once you are connected. 
 
 Created with the help of Generative AI.
 

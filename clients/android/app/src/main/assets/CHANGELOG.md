@@ -2,6 +2,21 @@
 
 All notable changes to YepList will be documented in this file.
 
+## [0.5.3] - 2026-05-13
+
+### Fixed
+- **Android**: Sync no longer silently skipped on cold app launch / widget process restart — dropped the `ConnectivityMonitor.isOnline` early-return that raced with `NetworkCallback.onAvailable` (sync now attempts the HTTP call directly and reports `ERROR` if it actually fails)
+- **Haiku**: About window now opens from the Program menu (window forwards `B_ABOUT_REQUESTED` to the application)
+
+### Changed
+- **Haiku**: Replaced resizable split with a fixed-width 240px sidebar (matches the Windows client's layout)
+- **Haiku**: Default window size reduced from 1400×700 to 1000×650
+- **Haiku**: Delete key now deletes the selected task (menu accelerator)
+
+### Added
+- **Haiku**: Right-click context menu on tasks (Edit, Delete)
+- **Haiku**: Sidebar header with YepList name and logo above the list of lists
+
 ## [0.5.2] - 2026-05-12
 
 ### Security

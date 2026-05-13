@@ -13,6 +13,7 @@
 #include "Models.h"
 
 
+class BBitmap;
 class BButton;
 class BListView;
 
@@ -20,6 +21,7 @@ class BListView;
 class ListSidebar : public BView {
 public:
 								ListSidebar();
+	virtual						~ListSidebar();
 
 	virtual void				AttachedToWindow();
 	virtual void				MessageReceived(BMessage* message);
@@ -31,9 +33,12 @@ public:
 
 private:
 			void				_ShowContextMenu(BPoint where);
+			BView*				_BuildHeader();
+			BBitmap*			_LoadLogo();
 
 			BListView*			fListView;
 			BButton*			fNewListButton;
+			BBitmap*			fLogoBitmap;
 };
 
 

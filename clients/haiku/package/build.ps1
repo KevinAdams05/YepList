@@ -1,17 +1,17 @@
 # build.ps1 — orchestrate cross-build of YepList on the Haiku build server
 #
 # Pushes the source tree to kevin@192.168.74.122, runs build-hpkg.sh,
-# and pulls the resulting .hpkg back to \\storage01\files\! Temp\Haiku.
+# and pulls the resulting .hpkg back to H:\.
 #
 # Usage:
-#   .\package\build.ps1            # build, drop .hpkg on storage01
+#   .\package\build.ps1            # build, drop .hpkg on H:\
 #   .\package\build.ps1 -KeepRemote # leave the remote tree in place for inspection
 
 [CmdletBinding()]
 param(
     [string] $RemoteHost = 'kevin@192.168.74.122',
     [string] $RemoteDir  = '~/build/YepList',
-    [string] $OutputDir  = '\\storage01\files\! Temp\Haiku',
+    [string] $OutputDir  = 'H:\',
     [switch] $KeepRemote
 )
 

@@ -63,7 +63,7 @@ AboutWindow::_CreateAboutTab()
 	nameView->SetFont(&titleFont);
 
 	BStringView* versionView = new BStringView("version",
-		"Version 0.5.2 (Beta)");
+		"Version 0.5.3 (Beta)");
 
 	BStringView* descView = new BStringView("desc",
 		"A cross-platform to-do list application");
