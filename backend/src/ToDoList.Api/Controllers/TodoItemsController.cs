@@ -8,10 +8,14 @@ namespace ToDoList.Api.Controllers
     public class TodoItemsController : ControllerBase
     {
         private readonly TodoItemRepository itemRepository;
+        private readonly TodoListRepository listRepository;
 
-        public TodoItemsController(TodoItemRepository itemRepository)
+        public TodoItemsController(
+            TodoItemRepository itemRepository,
+            TodoListRepository listRepository)
         {
             this.itemRepository = itemRepository;
+            this.listRepository = listRepository;
         }
 
         [HttpGet("api/lists/{listId}/items")]
@@ -59,6 +63,18 @@ namespace ToDoList.Api.Controllers
                 return BadRequest(ModelState);
             }
 
+            // If the caller is reparenting the item, confirm the target
+            // list exists. Without this we'd surface a raw FK violation
+            // from MySQL as a 500.
+            if (request.ListId.HasValue)
+            {
+                Core.Models.TodoList? targetList = await listRepository.GetByIdAsync(request.ListId.Value);
+                if (targetList == null)
+                {
+                    return BadRequest($"Target list {request.ListId.Value} does not exist.");
+                }
+            }
+
             Core.Models.TodoItem? item = await itemRepository.UpdateAsync(
                 id, request.Title, request.Notes, request.CategoryId,
                 request.IsCompleted, request.DueDate, request.SortOrder,
@@ -74,7 +90,12 @@ namespace ToDoList.Api.Controllers
         [HttpPatch("api/items/{id}/complete")]
         public async Task<IActionResult> ToggleComplete(long id, [FromBody] ToggleCompleteRequest request)
         {
-            Core.Models.TodoItem? item = await itemRepository.ToggleCompleteAsync(id, request.IsCompleted);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            Core.Models.TodoItem? item = await itemRepository.ToggleCompleteAsync(id, request.IsCompleted!.Value);
             if (item == null)
             {
                 return NotFound();

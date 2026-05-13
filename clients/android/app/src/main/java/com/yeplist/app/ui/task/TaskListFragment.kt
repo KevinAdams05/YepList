@@ -113,7 +113,9 @@ class TaskListFragment : Fragment() {
                 }
                 launch {
                     taskViewModel.items.collect { items ->
-                        val sorted = items.sortedBy { it.sortOrder }
+                        val sorted = items.sortedWith(
+                            compareBy({ it.isCompleted }, { it.sortOrder })
+                        )
                         mutableItems.clear()
                         mutableItems.addAll(sorted)
                         adapter.submitList(sorted.toList())
@@ -173,6 +175,11 @@ class TaskListFragment : Fragment() {
 
     private fun showEditDialog(itemId: Long) {
         TaskEditDialogFragment.newInstance(itemId).show(childFragmentManager, "task_edit")
+    }
+
+    fun showNewTaskDialog() {
+        if (!isAdded) return
+        showEditDialog(0)
     }
 
     override fun onDestroyView() {

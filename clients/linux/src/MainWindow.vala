@@ -356,6 +356,7 @@ public class MainWindow : Adw.ApplicationWindow {
     // ── UI Refresh ──────────────────────────────────────
 
     private void refresh_task_list () {
+        sort_items_by_order ();
         task_store.remove_all ();
         for (uint i = 0; i < current_items.length; i++) {
             task_store.append (current_items[i]);
@@ -373,16 +374,23 @@ public class MainWindow : Adw.ApplicationWindow {
     }
 
     private void sort_items_by_order () {
-        // Simple insertion sort by sort_order
+        // Sort completed items to the bottom, then by sort_order
         for (uint i = 1; i < current_items.length; i++) {
             var item = current_items[i];
             int j = (int) i - 1;
-            while (j >= 0 && current_items[j].sort_order > item.sort_order) {
+            while (j >= 0 && items_out_of_order (current_items[j], item)) {
                 current_items[j + 1] = current_items[j];
                 j--;
             }
             current_items[j + 1] = item;
         }
+    }
+
+    private bool items_out_of_order (TodoItem a, TodoItem b) {
+        if (a.is_completed != b.is_completed) {
+            return a.is_completed && !b.is_completed;
+        }
+        return a.sort_order > b.sort_order;
     }
 
     // ── Sync Timer ──────────────────────────────────────

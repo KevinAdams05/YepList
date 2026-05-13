@@ -60,9 +60,10 @@ deploy_api() {
         set -e
         sudo systemctl stop $API_SERVICE 2>/dev/null || true
 
-        # Preserve config
-        if [ -f "$API_PATH/appsettings.Production.json" ]; then
-            cp "$API_PATH/appsettings.Production.json" /tmp/appsettings.Production.json.bak
+        # Preserve config (root:www-data 640 → needs sudo to read)
+        if sudo test -f "$API_PATH/appsettings.Production.json"; then
+            sudo cp "$API_PATH/appsettings.Production.json" /tmp/appsettings.Production.json.bak
+            sudo chmod 644 /tmp/appsettings.Production.json.bak
         fi
 
         sudo mkdir -p $API_PATH
@@ -70,9 +71,12 @@ deploy_api() {
         sudo tar -xzf /tmp/yeplist-api.tar.gz -C $API_PATH
         sudo chown -R www-data:www-data $API_PATH 2>/dev/null || true
 
-        # Restore config
+        # Restore config and re-tighten perms (config holds the DB password)
         if [ -f /tmp/appsettings.Production.json.bak ]; then
             sudo cp /tmp/appsettings.Production.json.bak $API_PATH/appsettings.Production.json
+            sudo chown root:www-data $API_PATH/appsettings.Production.json
+            sudo chmod 640 $API_PATH/appsettings.Production.json
+            sudo rm -f /tmp/appsettings.Production.json.bak
         fi
 
         sudo systemctl start $API_SERVICE

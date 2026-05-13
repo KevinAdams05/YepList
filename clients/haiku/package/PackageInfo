@@ -1,0 +1,38 @@
+name			yeplist
+version			0.5.2-1
+architecture	x86_64
+summary			"Cross-platform to-do list — Haiku client"
+
+description		"A native Haiku to-do list client that syncs with the YepList
+REST API over the local network. Manage tasks, lists, and categories with
+30-second incremental sync.
+
+Features:
+  - Native BeAPI UI with BSplitView sidebar + task list layout
+  - Lists, tasks, categories — full CRUD via REST API
+  - Quick-add task bar and task completion toggle
+  - Category color swatches and default-list star indicator
+  - Right-click context menus for list management
+  - 30-second BMessageRunner sync with incremental updates
+  - Configurable server URL persisted via BMessage settings
+  - Tabbed About dialog (About, Libraries, Changelog)"
+
+packager		"Kevin Adams <kadams@triarcsolutions.com>"
+vendor			"Kevin Adams"
+
+licenses {
+	"MIT"
+}
+
+copyrights {
+	"2026 Kevin Adams"
+}
+
+provides {
+	yeplist = 0.5.2
+	app:YepList = 0.5.2
+}
+
+requires {
+	haiku >= r1~beta5
+}

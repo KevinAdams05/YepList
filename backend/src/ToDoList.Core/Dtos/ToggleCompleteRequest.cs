@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ToDoList.Core.Dtos
 {
     public class ToggleCompleteRequest
     {
-        public bool IsCompleted { get; set; }
+        [Required]
+        public bool? IsCompleted { get; set; }
     }
 }

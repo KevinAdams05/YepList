@@ -2,6 +2,36 @@
 
 All notable changes to YepList will be documented in this file.
 
+## [0.5.2] - 2026-05-12
+
+### Security
+- **Backend**: Connection string and DB credentials removed from `appsettings.json` (placeholder only); real values live in `appsettings.Production.json` / `appsettings.Local.json` (now gitignored)
+- **Backend**: `init.sql` no longer creates the application user with `ALL PRIVILEGES` and a wildcard host; DBA provisions `SELECT/INSERT/UPDATE/DELETE` on `@'localhost'` out-of-band
+- **Backend**: Production config file locked down to `root:www-data 640` on the deploy server
+- **Backend**: MySqlConnector connection string explicitly pins `AllowLoadLocalInfile=False`, `AllowUserVariables=False`, `Persist Security Info=False`
+- **Backend**: `/api/debug/log` and `/api/debug/log/batch` now rate-limited (10 req/min/IP), sanitize CR/LF/control chars to prevent log forging + ANSI injection, use structured logging templates, write to a 10 MB rolling file, and can be disabled via `DebugLogging:Enabled`
+- **Backend**: Kestrel hardened — `MaxRequestBodySize` 256 KB (was 28 MB default), `MaxConcurrentConnections` 200, `MaxRequestHeadersTotalSize` 16 KB
+- **Backend**: Global rate limiter at 600 req/min/IP
+- **Backend**: `UseExceptionHandler` + `AddProblemDetails` always on so unhandled errors return RFC 7807 JSON instead of leaking stack traces
+- **Backend**: Removed wildcard CORS (`AllowAnyOrigin`) — no browser client uses the API
+- **Backend**: Security response headers added: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`
+- **Backend**: `ToggleCompleteRequest.IsCompleted` is now `[Required] bool?` — missing field returns 400 instead of silently toggling to `false`
+- **Backend**: Item reparent (`PUT /api/items/{id}`) pre-validates the target list exists; returns 400 instead of a 500 from a raw MySQL FK violation
+
+## [0.5.1] - 2026-05-12
+
+### Added
+- **All clients**: Completed tasks now sort to the bottom of the list (Linux, Haiku, Android — matches existing Windows behavior)
+- **Android**: Sync on app open and every foreground resume
+- **Android**: "+" button on widget header for quick-add new task
+- **Android**: Widget background sync interval reduced from 15 min to ~5 min via self-rescheduling work chain
+- **Android**: Tapping anywhere on a widget row toggles completion (no longer requires hitting the checkbox precisely)
+
+### Fixed
+- **Haiku**: Crash on PATCH requests caused by adding the reserved `Content-Type` header explicitly
+- **Haiku**: Window can now be resized freely; default width increased to 1400px
+- **Haiku**: Completed task text now legible (blended title color + strikethrough instead of near-invisible background tint)
+
 ## [0.5.0] - 2026-04-14
 
 ### Added
@@ -19,6 +49,15 @@ All notable changes to YepList will be documented in this file.
 - **Windows**: Default list star indicator in sidebar
 - **Windows**: Tabbed About dialog with Libraries and Changelog tabs
 - **Windows**: Reusable `MarkdownRenderer` utility class for rich text formatting
+- **Haiku**: Native C++ BeAPI client with BSplitView layout (sidebar + task list)
+- **Haiku**: Full CRUD for lists, tasks, and categories via REST API
+- **Haiku**: Custom BListItem drawing with system colors and font metrics
+- **Haiku**: Right-click context menu for list management (rename, delete, set default)
+- **Haiku**: Quick-add task bar, task completion toggle, category color swatches
+- **Haiku**: 30-second BMessageRunner sync timer with incremental sync
+- **Haiku**: Settings dialog for server URL, persisted via BMessage Flatten/Unflatten
+- **Haiku**: Tabbed About dialog (About, Libraries, Changelog) with BTabView
+- **Haiku**: BHttpSession + BJson networking with worker thread pattern
 - **Backend**: Input validation on all API request DTOs (max lengths, required fields, regex patterns)
 - **Backend**: `ModelState.IsValid` checks on all controller endpoints
 - **Backend**: Debug log endpoint hardened with field length limits and batch size cap (100)

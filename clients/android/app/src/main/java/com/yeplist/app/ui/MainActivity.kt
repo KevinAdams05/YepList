@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_LIST_ID = "extra_list_id"
+        const val EXTRA_ADD_TASK = "extra_add_task"
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -120,7 +121,11 @@ class MainActivity : AppCompatActivity() {
             viewModel.restartForegroundSync()
         }
 
-        // Trigger initial sync
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh whenever the app is opened or brought back to the foreground.
         viewModel.sync()
     }
 
@@ -133,6 +138,17 @@ class MainActivity : AppCompatActivity() {
         val listId = intent?.getLongExtra(EXTRA_LIST_ID, -1) ?: -1
         if (listId > 0) {
             viewModel.selectList(listId)
+        }
+        if (intent?.getBooleanExtra(EXTRA_ADD_TASK, false) == true) {
+            // Defer until the fragment view exists; if it's already up, post
+            // bounces through the message queue so the list selection above
+            // has time to propagate.
+            binding.root.post {
+                taskListFragment?.showNewTaskDialog()
+            }
+            // Clear the flag so a subsequent onResume / config change
+            // doesn't re-open the dialog.
+            intent.removeExtra(EXTRA_ADD_TASK)
         }
     }
 

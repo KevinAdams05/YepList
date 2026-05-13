@@ -1,17 +1,22 @@
 -- YepList Database Schema
 -- MySQL 8.0+
 -- Run: mysql -u root -p < init.sql
+--
+-- This script creates the schema only. Provision the application user
+-- out-of-band — see README. Example (run as root, choose a real password):
+--
+--   CREATE USER 'yepapp'@'localhost' IDENTIFIED BY '<strong-password>';
+--   GRANT SELECT, INSERT, UPDATE, DELETE ON yeplist.* TO 'yepapp'@'localhost';
+--   FLUSH PRIVILEGES;
+--
+-- Use 'localhost' (or the actual API host), not '%'. Grant only the four
+-- DML verbs — the app never issues DDL.
 
 CREATE DATABASE IF NOT EXISTS yeplist
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
 USE yeplist;
-
--- Create application user
-CREATE USER IF NOT EXISTS 'yepapp'@'%' IDENTIFIED BY 'changeme';
-GRANT ALL PRIVILEGES ON yeplist.* TO 'yepapp'@'%';
-FLUSH PRIVILEGES;
 
 -- -----------------------------------------------------------
 -- Tables

@@ -97,6 +97,17 @@ class TaskListWidget : GlanceAppWidget() {
         }
     }
 
+    private fun addTaskIntent(context: Context, listId: Long): Intent {
+        return Intent(context, MainActivity::class.java).apply {
+            putExtra(MainActivity.EXTRA_LIST_ID, listId)
+            putExtra(MainActivity.EXTRA_ADD_TASK, true)
+            // Unique action string + timestamp keeps each tap from being
+            // deduped as the same Intent, so onNewIntent fires every time.
+            action = "com.yeplist.app.ADD_TASK_${System.currentTimeMillis()}"
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+    }
+
     @Composable
     private fun TaskListContent(
         context: Context,
@@ -109,18 +120,44 @@ class TaskListWidget : GlanceAppWidget() {
                 .fillMaxSize()
                 .appWidgetBackground()
                 .background(GlanceTheme.colors.widgetBackground)
-                .clickable(actionStartActivity(openListIntent(context, listId)))
         ) {
-            // Header
-            Text(
-                text = listName,
-                modifier = GlanceModifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                style = TextStyle(
-                    color = GlanceTheme.colors.onSurface,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+            // Header — list name (taps open the list) + "+" button (adds a task)
+            Row(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = listName,
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .clickable(actionStartActivity(
+                            openListIntent(context, listId))),
+                    style = TextStyle(
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-            )
+                Box(
+                    modifier = GlanceModifier
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .clickable(actionStartActivity(
+                            addTaskIntent(context, listId))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+",
+                        style = TextStyle(
+                            color = GlanceTheme.colors.onSurface,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
 
             // Task list
             LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
@@ -136,36 +173,41 @@ class TaskListWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                .padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox + title area (clickable to toggle complete)
-            Row(
+            // Toggle area \u2014 Box gives the whole weighted region a hit
+            // target so taps anywhere (not just on the checkbox) register.
+            Box(
                 modifier = GlanceModifier
                     .defaultWeight()
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
                     .clickable(ToggleCompleteAction.action(item.itemId)),
-                verticalAlignment = Alignment.CenterVertically
+                contentAlignment = Alignment.CenterStart
             ) {
-                val checkmark = if (item.isCompleted) "\u2611" else "\u2610"
-                Text(
-                    text = checkmark,
-                    style = TextStyle(
-                        color = GlanceTheme.colors.onSurface,
-                        fontSize = 18.sp
-                    ),
-                    modifier = GlanceModifier.padding(end = 8.dp)
-                )
-                Text(
-                    text = item.title,
-                    style = TextStyle(
-                        color = if (item.isCompleted) {
-                            GlanceTheme.colors.outline
-                        } else {
-                            GlanceTheme.colors.onSurface
-                        },
-                        fontSize = 14.sp
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val checkmark = if (item.isCompleted) "\u2611" else "\u2610"
+                    Text(
+                        text = checkmark,
+                        style = TextStyle(
+                            color = GlanceTheme.colors.onSurface,
+                            fontSize = 18.sp
+                        ),
+                        modifier = GlanceModifier.padding(end = 8.dp)
                     )
-                )
+                    Text(
+                        text = item.title,
+                        style = TextStyle(
+                            color = if (item.isCompleted) {
+                                GlanceTheme.colors.outline
+                            } else {
+                                GlanceTheme.colors.onSurface
+                            },
+                            fontSize = 14.sp
+                        )
+                    )
+                }
             }
 
             // Delete button

@@ -57,7 +57,7 @@ public class AboutDialog : Adw.Dialog {
         box.append (logo_image);
 
         // Version
-        var version_label = new Gtk.Label ("Version 0.5.0");
+        var version_label = new Gtk.Label ("Version 0.5.2");
         version_label.add_css_class ("dim-label");
         box.append (version_label);
 

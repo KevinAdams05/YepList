@@ -1,0 +1,18 @@
+{
+  "_comment": "Copy to appsettings.Production.json (or appsettings.Local.json for dev) and fill in real values. Both files are gitignored. Or set ConnectionStrings__Default in the environment.",
+
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=yeplist;User=yepapp;Password=<your-password>;SslMode=None;AllowLoadLocalInfile=False;AllowUserVariables=False;Persist Security Info=False"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Urls": "http://0.0.0.0:5000",
+  "DebugLogging": {
+    "Enabled": true
+  }
+}

@@ -11,15 +11,22 @@ class SyncWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val app = applicationContext as? YepListApp ?: return Result.failure()
+        val app = applicationContext as? YepListApp
+            ?: return finishAndRequeue(Result.failure())
         val container = app.container
 
         return try {
             container.syncManager.sync()
-            Result.success()
+            finishAndRequeue(Result.success())
         } catch (e: Exception) {
-            Result.retry()
+            // Re-enqueue even on failure so the chain doesn't break.
+            finishAndRequeue(Result.retry())
         }
+    }
+
+    private fun finishAndRequeue(result: Result): Result {
+        SyncScheduler.scheduleNextSync(applicationContext)
+        return result
     }
 
     companion object {

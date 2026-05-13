@@ -9,6 +9,11 @@ obj/
 .vscode/
 *.DotSettings.user
 
+# Local / production config — never commit real secrets
+appsettings.Local.json
+appsettings.Production.json
+appsettings.*.local.json
+
 # Build results
 [Dd]ebug/
 [Rr]elease/
@@ -27,6 +32,9 @@ project.fragment.lock.json
 # Meson (Linux client)
 builddir/
 subprojects/
+
+# Haiku client local build artifacts (cross-build dumps here if run locally)
+clients/haiku/build/
 
 # Android
 .gradle/
