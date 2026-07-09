@@ -2,6 +2,32 @@
 
 All notable changes to YepList will be documented in this file.
 
+## [0.5.4] - Unreleased
+
+> Sync overhaul: conflict-safe writes, soft-delete with provenance, server-side sync audit/log viewer, and durable Android background refresh. See `docs/sync-overhaul-notes.md`.
+>
+> **Operational step:** apply the DB migration as an admin before deploying — `mysql -u root -p yeplist < backend/src/ToDoList.Data/Schema/Migrations/001_sync_overhaul.sql` (the app DB user has no DDL grant).
+
+### Added
+- **Backend**: Per-item version tracking — `version` + `client_modified_date` columns on lists, items, and categories, enabling conflict-safe writes
+- **Backend**: Device identity — `DeviceTrackingMiddleware` reads `X-Device-Id`/`X-Device-Name`/`X-Device-Platform` and upserts a `device` table (id, name, platform, first/last seen)
+- **Backend**: Sync audit log — `sync_log` table records every pull and write (device, action, entity, applied/stale/notfound outcome, returned counts); best-effort, never fails the request
+- **Backend**: Server-side log viewer at `/admin/logs` (loopback-only, 404 to remote IPs) — single-page HTML with device/action/time filters, stale-write highlighting, and a `debug.log` tail
+- **Backend**: `RetentionService` daily job purges `sync_log`, soft-deleted rows, and legacy tombstones older than `Retention:Days` (default 90), gated by `Retention:Enabled`
+- **Backend**: Schema migration `Schema/Migrations/001_sync_overhaul.sql` + Migrations `README.md` (admin-applied; `init.sql` also updated for fresh installs)
+- **Android**: Durable 15-minute `PeriodicWorkRequest` background backstop alongside the existing 5-minute self-rescheduling chain, so the app and widgets refresh without being opened
+- **Android**: Battery-optimization exemption prompt on first launch (+ manifest permission and strings)
+- **Windows**: Stable per-install device ID (GUID persisted in `settings.json`)
+
+### Changed
+- **All clients / Backend**: Conflict resolution is now **newest-edit-wins** — clients stamp writes with the real user edit time (`clientModifiedDate`) and the server applies a write only if it is at least as new as the stored edit time. A late-arriving stale edit no longer overwrites fresher data (fixes cross-device stale-overwrite data loss). `modified_date` remains the pull cursor
+- **Backend**: Deletes are now **soft deletes** — rows are flagged `is_deleted` with `deleted_date` + `deleted_by_device` instead of being removed; sync deleted-IDs are derived from the flags (prevents a deleted item being resurrected by another device that still holds it). `deleted_entity` tombstones are no longer written
+- **All clients**: Send `X-Device-Id`/`X-Device-Name`/`X-Device-Platform` headers on sync and mutation calls (previously only on `/api/debug/log`)
+- **Docs**: Updated README.md
+
+### Fixed
+- **Android**: App and home-screen widgets not auto-refreshing on Android 16 / OneUI 8.5 (Galaxy S23) — added the durable periodic scheduler and battery-optimization prompt (also requires excluding YepList from OneUI *Sleeping apps* on the device)
+
 ## [0.5.3] - 2026-05-13
 
 ### Fixed

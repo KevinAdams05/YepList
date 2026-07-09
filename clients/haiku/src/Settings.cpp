@@ -42,6 +42,10 @@ Settings::Load()
 
 	message.FindInt64("default_list_id", &settings.fDefaultListId);
 
+	BRect frame;
+	if (message.FindRect("window_frame", &frame) == B_OK)
+		settings.fWindowFrame = frame;
+
 	return settings;
 }
 
@@ -67,6 +71,8 @@ Settings::Save() const
 	BMessage message('yplS');
 	message.AddString("server_url", fServerUrl.String());
 	message.AddInt64("default_list_id", fDefaultListId);
+	if (fWindowFrame.IsValid())
+		message.AddRect("window_frame", fWindowFrame);
 
 	return message.Flatten(&file);
 }
@@ -83,6 +89,13 @@ void
 Settings::SetDefaultListId(int64 id)
 {
 	fDefaultListId = id;
+}
+
+
+void
+Settings::SetWindowFrame(BRect frame)
+{
+	fWindowFrame = frame;
 }
 
 

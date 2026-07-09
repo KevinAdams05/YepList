@@ -107,6 +107,7 @@ INCLUDES=(
 	-I"$HAIKU_HEADERS/os"
 	-I"$HAIKU_HEADERS/os/app"
 	-I"$HAIKU_HEADERS/os/interface"
+	-I"$HAIKU_HEADERS/os/add-ons/graphics"
 	-I"$HAIKU_HEADERS/os/locale"
 	-I"$HAIKU_HEADERS/os/storage"
 	-I"$HAIKU_HEADERS/os/support"

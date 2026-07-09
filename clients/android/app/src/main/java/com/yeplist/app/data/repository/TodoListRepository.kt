@@ -32,7 +32,7 @@ class TodoListRepository(
         )
         listDao.upsert(entity)
 
-        val payload = gson.toJson(CreateTodoListRequest(name, sortOrder))
+        val payload = gson.toJson(CreateTodoListRequest(name, sortOrder, clientModifiedDate = now))
         pendingOpDao.insert(
             PendingOperationEntity(
                 entityType = "list",
@@ -48,14 +48,15 @@ class TodoListRepository(
 
     suspend fun update(listId: Long, name: String, sortOrder: Int) {
         val existing = listDao.getById(listId) ?: return
+        val now = Instant.now().toString()
         val updated = existing.copy(
             name = name,
             sortOrder = sortOrder,
-            modifiedDate = Instant.now().toString()
+            modifiedDate = now
         )
         listDao.upsert(updated)
 
-        val payload = gson.toJson(CreateTodoListRequest(name, sortOrder))
+        val payload = gson.toJson(CreateTodoListRequest(name, sortOrder, clientModifiedDate = now))
         if (listId < 0) {
             // Not yet synced — update the pending create's payload
             val ops = pendingOpDao.getByEntity("list", listId)
@@ -71,7 +72,7 @@ class TodoListRepository(
                     operationType = "update",
                     entityId = listId,
                     payload = payload,
-                    createdDate = Instant.now().toString()
+                    createdDate = now
                 )
             )
         }

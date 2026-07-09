@@ -9,22 +9,193 @@
 #include <Application.h>
 #include <File.h>
 #include <FindDirectory.h>
+#include <Font.h>
+#include <InterfaceDefs.h>
 #include <LayoutBuilder.h>
 #include <Path.h>
 #include <Roster.h>
 #include <ScrollView.h>
+#include <Size.h>
 #include <String.h>
 #include <StringView.h>
 #include <TabView.h>
 #include <TextView.h>
 
 #include <cstdio>
+#include <vector>
+
+
+namespace {
+
+// A styled run of text: [offset, offset+length) rendered bold, monospace,
+// and/or scaled relative to the base font size.
+struct MarkdownSpan {
+	int32	offset;
+	int32	length;
+	float	sizeScale;
+	bool	bold;
+	bool	code;
+};
+
+
+void
+AppendRun(BString& out, std::vector<MarkdownSpan>& spans,
+	const BString& text, float sizeScale, bool bold, bool code)
+{
+	if (text.Length() == 0)
+		return;
+	MarkdownSpan span = { out.Length(), text.Length(), sizeScale, bold, code };
+	out.Append(text);
+	spans.push_back(span);
+}
+
+
+// Append `text`, rendering **bold** segments in bold and `code` segments in a
+// monospace font. Everything else is plain body text.
+void
+AppendInline(BString& out, std::vector<MarkdownSpan>& spans,
+	const BString& text)
+{
+	int32 i = 0;
+	int32 len = text.Length();
+	while (i < len) {
+		int32 boldPos = text.FindFirst("**", i);
+		int32 codePos = text.FindFirst("`", i);
+
+		// Pick whichever marker comes first.
+		int32 marker = -1;
+		bool isBold = false;
+		if (boldPos >= 0 && (codePos < 0 || boldPos <= codePos)) {
+			marker = boldPos;
+			isBold = true;
+		} else if (codePos >= 0) {
+			marker = codePos;
+			isBold = false;
+		}
+
+		if (marker < 0) {
+			BString rest;
+			text.CopyInto(rest, i, len - i);
+			AppendRun(out, spans, rest, 1.0f, false, false);
+			break;
+		}
+
+		if (marker > i) {
+			BString plain;
+			text.CopyInto(plain, i, marker - i);
+			AppendRun(out, spans, plain, 1.0f, false, false);
+		}
+
+		if (isBold) {
+			int32 end = text.FindFirst("**", marker + 2);
+			if (end < 0) {
+				BString rest;
+				text.CopyInto(rest, marker, len - marker);
+				AppendRun(out, spans, rest, 1.0f, false, false);
+				break;
+			}
+			BString boldText;
+			text.CopyInto(boldText, marker + 2, end - marker - 2);
+			AppendRun(out, spans, boldText, 1.0f, true, false);
+			i = end + 2;
+		} else {
+			int32 end = text.FindFirst("`", marker + 1);
+			if (end < 0) {
+				BString rest;
+				text.CopyInto(rest, marker, len - marker);
+				AppendRun(out, spans, rest, 1.0f, false, false);
+				break;
+			}
+			BString codeText;
+			text.CopyInto(codeText, marker + 1, end - marker - 1);
+			AppendRun(out, spans, codeText, 1.0f, false, true);
+			i = end + 1;
+		}
+	}
+}
+
+
+// Renders a subset of Markdown (# / ## / ### headings, "- " bullets, and
+// **bold** inline) into a BTextView, matching the Linux and Windows clients.
+// The text view must be stylable.
+void
+RenderMarkdown(BTextView* view, const BString& markdown)
+{
+	BString out;
+	std::vector<MarkdownSpan> spans;
+
+	int32 total = markdown.Length();
+	int32 start = 0;
+	while (start <= total) {
+		int32 nl = markdown.FindFirst('\n', start);
+		int32 lineEnd = (nl < 0) ? total : nl;
+
+		BString line;
+		markdown.CopyInto(line, start, lineEnd - start);
+		if (line.EndsWith("\r"))
+			line.Truncate(line.Length() - 1);
+
+		if (line.StartsWith("### ")) {
+			BString t;
+			line.CopyInto(t, 4, line.Length() - 4);
+			AppendRun(out, spans, t, 1.1f, true, false);
+		} else if (line.StartsWith("## ")) {
+			BString t;
+			line.CopyInto(t, 3, line.Length() - 3);
+			AppendRun(out, spans, t, 1.3f, true, false);
+		} else if (line.StartsWith("# ")) {
+			BString t;
+			line.CopyInto(t, 2, line.Length() - 2);
+			AppendRun(out, spans, t, 1.5f, true, false);
+		} else if (line.StartsWith("- ")) {
+			BString content;
+			line.CopyInto(content, 2, line.Length() - 2);
+			AppendRun(out, spans, "  \xE2\x80\xA2 ", 1.0f, false, false);
+			AppendInline(out, spans, content);
+		} else if (line == ">" || line.StartsWith("> ")) {
+			// Blockquote — drop the "> " marker and render the remainder as
+			// ordinary body text (still honouring inline bold/code).
+			BString content;
+			if (line.Length() > 2)
+				line.CopyInto(content, 2, line.Length() - 2);
+			AppendInline(out, spans, content);
+		} else {
+			AppendInline(out, spans, line);
+		}
+
+		out.Append("\n");
+
+		if (nl < 0)
+			break;
+		start = nl + 1;
+	}
+
+	view->SetText(out.String());
+
+	rgb_color textColor = ui_color(B_DOCUMENT_TEXT_COLOR);
+	float baseSize = be_plain_font->Size();
+	for (const MarkdownSpan& span : spans) {
+		const BFont* base = be_plain_font;
+		if (span.code)
+			base = be_fixed_font;
+		else if (span.bold)
+			base = be_bold_font;
+		BFont font(base);
+		font.SetSize(baseSize * span.sizeScale);
+		view->SetFontAndColor(span.offset, span.offset + span.length,
+			&font, B_FONT_ALL, &textColor);
+	}
+}
+
+}	// namespace
 
 
 AboutWindow::AboutWindow()
 	:
-	BWindow(BRect(0, 0, 460, 380), "About YepList",
-		B_MODAL_WINDOW,
+	// Titled window (not modal) so it gets a standard window tab in the
+	// title bar, like the main window.
+	BWindow(BRect(0, 0, 520, 400), "About YepList",
+		B_TITLED_WINDOW,
 		B_AUTO_UPDATE_SIZE_LIMITS | B_CLOSE_ON_ESCAPE
 		| B_NOT_ZOOMABLE | B_NOT_MINIMIZABLE | B_NOT_RESIZABLE),
 	fTabView(NULL)
@@ -63,7 +234,7 @@ AboutWindow::_CreateAboutTab()
 	nameView->SetFont(&titleFont);
 
 	BStringView* versionView = new BStringView("version",
-		"Version 0.5.3 (Beta)");
+		"Version 0.5.4 (Beta)");
 
 	BStringView* descView = new BStringView("desc",
 		"A cross-platform to-do list application");
@@ -128,6 +299,8 @@ AboutWindow::_CreateLibrariesTab()
 
 	BScrollView* scrollView = new BScrollView("lib_scroll",
 		textView, 0, false, true);
+	// Keep the content wide enough that all three tab labels fit.
+	scrollView->SetExplicitMinSize(BSize(480, 320));
 
 	BLayoutBuilder::Group<>(view, B_VERTICAL, 0.0f)
 		.SetInsets(B_USE_DEFAULT_SPACING)
@@ -147,17 +320,18 @@ AboutWindow::_CreateChangelogTab()
 	BTextView* textView = new BTextView("changelog_text");
 	textView->MakeEditable(false);
 	textView->MakeSelectable(true);
-	textView->SetStylable(false);
+	textView->SetStylable(true);
 	textView->SetWordWrap(true);
 
 	BString changelog = _LoadChangelog();
 	if (changelog.Length() == 0)
 		changelog = "Changelog not available.";
 
-	textView->SetText(changelog.String());
+	RenderMarkdown(textView, changelog);
 
 	BScrollView* scrollView = new BScrollView("cl_scroll",
 		textView, 0, false, true);
+	scrollView->SetExplicitMinSize(BSize(480, 320));
 
 	BLayoutBuilder::Group<>(view, B_VERTICAL, 0.0f)
 		.SetInsets(B_USE_DEFAULT_SPACING)

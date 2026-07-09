@@ -6,6 +6,7 @@
 
 #include "TaskListView.h"
 
+#include <Button.h>
 #include <LayoutBuilder.h>
 #include <ListView.h>
 #include <MenuItem.h>
@@ -65,6 +66,7 @@ TaskListView::TaskListView()
 	:
 	BView("task_list_view", B_WILL_DRAW),
 	fHeaderView(NULL),
+	fAddTaskButton(NULL),
 	fListView(NULL),
 	fQuickAddField(NULL)
 {
@@ -72,6 +74,11 @@ TaskListView::TaskListView()
 	BFont headerFont(be_bold_font);
 	headerFont.SetSize(headerFont.Size() * 1.2f);
 	fHeaderView->SetFont(&headerFont);
+
+	// Opens the full task dialog (kMsgNewTask is handled by MainWindow),
+	// mirroring the "Add Task" button in the Linux client.
+	fAddTaskButton = new BButton("add_task", "Add Task",
+		new BMessage(kMsgNewTask));
 
 	fListView = new TaskContextListView("task_view");
 	fListView->SetInvocationMessage(new BMessage(kMsgTaskInvoked));
@@ -85,6 +92,8 @@ TaskListView::TaskListView()
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0.0f)
 		.AddGroup(B_HORIZONTAL)
 			.Add(fHeaderView)
+			.AddGlue()
+			.Add(fAddTaskButton)
 			.SetInsets(B_USE_SMALL_SPACING)
 		.End()
 		.Add(scrollView, 1.0f)
@@ -102,6 +111,7 @@ TaskListView::AttachedToWindow()
 	BView::AttachedToWindow();
 	fQuickAddField->SetTarget(this);
 	fListView->SetTarget(this);
+	fAddTaskButton->SetTarget(Window());
 }
 
 

@@ -3,27 +3,32 @@
 > [!WARNING]
 > This is beta code, use at your own risk. Data is not encrypted in the database and SSL is not forced. Intended for local network traffic only. Don't store any top secret data in this app.
 
-A selfhosted cross-platform (Windows/Linux/Haiku/Android) To-Do list app. The backend consists of MySQL and C#/ASP.NET Core. Clients are available for Linux, Windows, and Android. 
+A selfhosted cross-platform To-Do list app with a local server back-end. The backend consists of MySQL and C#/ASP.NET Core. Clients are available for Linux, Windows, Haiku, and Android. 
 
 The Android app has local caching, so if you add items when you are away from your network they will get synced once you are connected. 
 
-Created with the help of Generative AI.
 
 ## Screenshots
 **Linux**
+
 ![linux screenshot](resources/linuxscreenshot.png)
 
 
 **Windows**
+
 ![windows screenshot](resources/windowsscreenshot.png)
 
 **Android**
 
 <img src="resources/AndroidScreenshot.jpg" alt="android screenshot" width="300">
 
+**Haiku**
+
+<img src="resources/HaikuScreenshot.png" alt="Haiku screenshot" width="600">
+
 ## Architecture
 
-YepList uses a shared REST API backend with three native clients that sync via timestamp-based polling.
+YepList uses a shared REST API backend with four native clients that sync via timestamp-based polling.
 
 <p align="center">
   <img src="resources/architecture.svg" alt="YepList Architecture" width="640">
@@ -37,6 +42,7 @@ YepList uses a shared REST API backend with three native clients that sync via t
 | Database | MySQL 8.0 |
 | Windows Client | C# WinForms + Krypton Toolkit |
 | Linux Client | Vala + GTK4 + libadwaita |
+| Haiku Client | C++ + Haiku Interface Kit (BeAPI) |
 | Android Client | Kotlin + Retrofit + Room + Jetpack Glance |
 
 ## Features
@@ -60,6 +66,7 @@ YepList uses a shared REST API backend with three native clients that sync via t
 - **Backend**: .NET 10 SDK, MySQL 8.0
 - **Windows Client**: .NET 10 SDK (Windows)
 - **Linux Client**: Vala compiler, GTK4, libadwaita, libsoup-3.0, json-glib-1.0, Meson, Ninja
+- **Haiku Client**: Haiku R1/beta5 with the development tools (or a Haiku cross-build toolchain)
 - **Android Client**: Android Studio with JDK 21+
 
 ### Server Setup
@@ -94,6 +101,13 @@ ninja
 ./yep-list --server http://your-server:5000
 ```
 
+**Haiku:** (build natively on Haiku)
+```bash
+cd clients/haiku
+make
+# Or produce a standalone .hpkg: package/build-hpkg.sh
+```
+
 **Android:**
 ```bash
 cd clients/android
@@ -118,6 +132,7 @@ ToDoList/
   clients/
     windows/               # C# WinForms + Krypton
     linux/                 # Vala + GTK4 + libadwaita
+    haiku/                 # C++ + Haiku Interface Kit (BeAPI)
     android/               # Kotlin + Retrofit + Room
   resources/               # Logos and icons
   docs/                    # Documentation

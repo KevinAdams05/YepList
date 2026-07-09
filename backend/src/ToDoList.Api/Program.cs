@@ -1,5 +1,7 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using ToDoList.Api.Middleware;
+using ToDoList.Api.Services;
 using ToDoList.Core.Interfaces;
 using ToDoList.Data;
 using ToDoList.Data.Repositories;
@@ -25,6 +27,11 @@ builder.Services.AddScoped<TodoListRepository>();
 builder.Services.AddScoped<TodoItemRepository>();
 builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<DeletedEntityRepository>();
+builder.Services.AddScoped<DeviceRepository>();
+builder.Services.AddScoped<SyncLogRepository>();
+
+// Daily retention purge of sync logs + long-since soft-deleted rows.
+builder.Services.AddHostedService<RetentionService>();
 
 // Controllers
 builder.Services.AddControllers();
@@ -84,6 +91,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseRateLimiter();
+
+// Stamp each request with its device identity (X-Device-* headers) and keep
+// the device registry fresh, so writes/deletes and the audit log know who.
+app.UseMiddleware<DeviceTrackingMiddleware>();
 
 app.MapControllers();
 

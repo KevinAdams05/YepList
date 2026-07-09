@@ -46,8 +46,25 @@ class AppContainer(context: Context) {
             return if (saved.isNullOrBlank()) DEFAULT_SERVER_URL else saved
         }
 
+    // Stable per-install identifier sent to the server (X-Device-Id) so sync
+    // activity and deletions can be attributed to this device.
+    val deviceId: String by lazy {
+        prefs.getString(PREF_DEVICE_ID, null)?.takeIf { it.isNotBlank() } ?: run {
+            val id = java.util.UUID.randomUUID().toString().replace("-", "")
+            prefs.edit().putString(PREF_DEVICE_ID, id).apply()
+            id
+        }
+    }
+
+    // Friendly name (X-Device-Name): the user's chosen device name if set
+    // (e.g. "Taylor's Phone"), otherwise the manufacturer + model.
+    val deviceName: String by lazy {
+        val userName = android.provider.Settings.Global.getString(appContext.contentResolver, "device_name")
+        if (!userName.isNullOrBlank()) userName else "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
+    }
+
     val apiService: YepListApiService by lazy {
-        NetworkModule.createApiService(serverUrl)
+        NetworkModule.createApiService(serverUrl, deviceId, deviceName)
     }
 
     // Connectivity
@@ -96,6 +113,7 @@ class AppContainer(context: Context) {
     companion object {
         const val DEFAULT_SERVER_URL = "http://192.168.74.122:5000"
         const val PREF_SERVER_URL = "server_url"
+        const val PREF_DEVICE_ID = "device_id"
         const val PREF_DEFAULT_LIST_ID = "default_list_id"
         const val PREF_SYNC_INTERVAL = "sync_interval_seconds"
         const val DEFAULT_SYNC_INTERVAL = 30L

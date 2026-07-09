@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 using Krypton.Toolkit;
 using ToDoList.Windows.ApiClient;
@@ -38,7 +39,8 @@ namespace ToDoList.Windows
             RemoteLogger.Init(serverUrl);
             RemoteLogger.Info("App", $"YepList Windows started, server={serverUrl}");
 
-            TodoApiClient apiClient = new TodoApiClient(serverUrl);
+            TodoApiClient apiClient = new TodoApiClient(
+                serverUrl, settings.EnsureDeviceId(), Environment.MachineName);
             Application.Run(new MainForm(apiClient, settings));
         }
     }

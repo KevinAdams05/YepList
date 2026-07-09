@@ -132,20 +132,30 @@ public:
 	{
 		BRect bounds = Bounds();
 		const float padding = 8.0f;
-		const float logoSize = bounds.Height() - padding * 2.0f;
+		const float logoHeight = bounds.Height() - padding * 2.0f;
 
-		float textX = bounds.left + padding;
 		if (fLogo != NULL && fLogo->IsValid()) {
+			// The source logo is a wide "YepList" wordmark (icon + text),
+			// not a square icon — preserve its aspect ratio so it isn't
+			// squished, and skip the separate text label below.
+			BRect logoBounds = fLogo->Bounds();
+			float aspect = logoBounds.Height() > 0
+				? logoBounds.Width() / logoBounds.Height() : 1.0f;
+			float logoWidth = logoHeight * aspect;
+
 			BRect dest(bounds.left + padding,
 				bounds.top + padding,
-				bounds.left + padding + logoSize,
-				bounds.top + padding + logoSize);
+				bounds.left + padding + logoWidth,
+				bounds.top + padding + logoHeight);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(fLogo, fLogo->Bounds(), dest);
+			// Bilinear filtering smooths the downscaled wordmark, which
+			// otherwise looks jagged at this size.
+			DrawBitmap(fLogo, logoBounds, dest, B_FILTER_BITMAP_BILINEAR);
 			SetDrawingMode(B_OP_COPY);
-			textX = dest.right + padding;
+			return;
 		}
 
+		// Fallback when the logo image is missing: draw the app name.
 		BFont font(be_bold_font);
 		font.SetSize(font.Size() * 1.5f);
 		SetFont(&font);
@@ -155,7 +165,7 @@ public:
 		font.GetHeight(&fh);
 		float baseline = bounds.top
 			+ (bounds.Height() + fh.ascent - fh.descent) / 2.0f;
-		DrawString("YepList", BPoint(textX, baseline));
+		DrawString("YepList", BPoint(bounds.left + padding, baseline));
 	}
 
 private:

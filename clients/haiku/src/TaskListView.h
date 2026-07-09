@@ -13,6 +13,7 @@
 #include "Models.h"
 
 
+class BButton;
 class BListView;
 class BStringView;
 class BTextControl;
@@ -35,6 +36,7 @@ public:
 
 private:
 			BStringView*		fHeaderView;
+			BButton*			fAddTaskButton;
 			BListView*			fListView;
 			BTextControl*		fQuickAddField;
 };

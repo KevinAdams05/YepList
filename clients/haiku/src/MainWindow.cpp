@@ -13,6 +13,7 @@
 #include <MenuBar.h>
 #include <MenuItem.h>
 #include <MessageRunner.h>
+#include <Screen.h>
 #include <Size.h>
 #include <StringView.h>
 #include <TimeFormat.h>
@@ -34,7 +35,7 @@ static const bigtime_t kSyncInterval = 30 * 1000000LL;	// 30 seconds
 
 MainWindow::MainWindow()
 	:
-	BWindow(BRect(100, 100, 1000, 650), "YepList",
+	BWindow(BRect(100, 100, 1100, 740), "YepList",
 		B_DOCUMENT_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS),
 	fMenuBar(NULL),
@@ -50,7 +51,18 @@ MainWindow::MainWindow()
 
 	_BuildMenu();
 	_BuildLayout();
-	CenterOnScreen();
+
+	// Restore the last-used window frame if it was saved and still lands
+	// on-screen; otherwise fall back to centering.
+	BScreen screen(this);
+	if (fSettings.HasWindowFrame()
+		&& screen.Frame().Intersects(fSettings.WindowFrame())) {
+		BRect frame = fSettings.WindowFrame();
+		MoveTo(frame.LeftTop());
+		ResizeTo(frame.Width(), frame.Height());
+	} else {
+		CenterOnScreen();
+	}
 
 	// Kick off initial data load
 	_DoFullRefresh();
@@ -256,6 +268,7 @@ MainWindow::MessageReceived(BMessage* message)
 bool
 MainWindow::QuitRequested()
 {
+	fSettings.SetWindowFrame(Frame());
 	fSettings.Save();
 	be_app->PostMessage(B_QUIT_REQUESTED);
 	return true;
@@ -303,16 +316,18 @@ MainWindow::_BuildLayout()
 	fStatusBar = new BStringView("statusbar", "Connecting...");
 	fStatusBar->SetAlignment(B_ALIGN_LEFT);
 
-	// Fixed-width sidebar (matches the Windows client's 240px sidebar)
-	// with the task list filling the rest. No splitter — divider isn't
-	// draggable, which is consistent with the other clients.
-	fListSidebar->SetExplicitSize(BSize(240, B_SIZE_UNSET));
+	// Sidebar takes ~25% of the width and the task list ~75%, matching the
+	// Linux client's NavigationSplitView. The sidebar is clamped to a usable
+	// range (180–280px, like libadwaita's defaults) so it never dominates on
+	// narrow windows nor sprawls on wide ones.
+	fListSidebar->SetExplicitMinSize(BSize(180, B_SIZE_UNSET));
+	fListSidebar->SetExplicitMaxSize(BSize(280, B_SIZE_UNLIMITED));
 
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0.0f)
 		.Add(fMenuBar)
 		.AddGroup(B_HORIZONTAL, 0.0f)
-			.Add(fListSidebar)
-			.Add(fTaskListView)
+			.Add(fListSidebar, 1.0f)
+			.Add(fTaskListView, 3.0f)
 		.End()
 		.AddGroup(B_HORIZONTAL, 0.0f)
 			.Add(fStatusBar)

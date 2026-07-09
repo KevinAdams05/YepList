@@ -13,12 +13,18 @@ namespace ToDoList.Windows.ApiClient
         private readonly HttpClient httpClient;
         private DateTime lastSyncTime = DateTime.MinValue;
 
-        public TodoApiClient(string baseUrl)
+        public TodoApiClient(string baseUrl, string deviceId, string deviceName)
         {
             httpClient = new HttpClient
             {
                 BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/")
             };
+
+            // Identify this device on every request so the server can attribute
+            // sync activity and deletions to it (see DeviceTrackingMiddleware).
+            httpClient.DefaultRequestHeaders.Add("X-Device-Id", deviceId);
+            httpClient.DefaultRequestHeaders.Add("X-Device-Name", deviceName);
+            httpClient.DefaultRequestHeaders.Add("X-Device-Platform", "Windows");
         }
 
         public string BaseUrl => httpClient.BaseAddress?.ToString() ?? "";
@@ -35,7 +41,7 @@ namespace ToDoList.Windows.ApiClient
         public async Task<TodoList> CreateListAsync(string name, int sortOrder = 0)
         {
             HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/lists",
-                new { name, sortOrder });
+                new { name, sortOrder, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoList>())!;
@@ -44,7 +50,7 @@ namespace ToDoList.Windows.ApiClient
         public async Task<TodoList> UpdateListAsync(long listId, string name, int sortOrder = 0)
         {
             HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/lists/{listId}",
-                new { name, sortOrder });
+                new { name, sortOrder, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoList>())!;
@@ -68,7 +74,7 @@ namespace ToDoList.Windows.ApiClient
         public async Task<Category> CreateCategoryAsync(string name, string? color)
         {
             HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/categories",
-                new { name, color });
+                new { name, color, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<Category>())!;
@@ -77,7 +83,7 @@ namespace ToDoList.Windows.ApiClient
         public async Task<Category> UpdateCategoryAsync(long categoryId, string name, string? color)
         {
             HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/categories/{categoryId}",
-                new { name, color });
+                new { name, color, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<Category>())!;
@@ -102,7 +108,7 @@ namespace ToDoList.Windows.ApiClient
             long? categoryId, DateTime? dueDate, int sortOrder = 0)
         {
             HttpResponseMessage response = await httpClient.PostAsJsonAsync($"api/lists/{listId}/items",
-                new { title, notes, categoryId, dueDate, sortOrder });
+                new { title, notes, categoryId, dueDate, sortOrder, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;
@@ -113,7 +119,7 @@ namespace ToDoList.Windows.ApiClient
             long? listId = null)
         {
             HttpResponseMessage response = await httpClient.PutAsJsonAsync($"api/items/{itemId}",
-                new { title, notes, categoryId, listId, isCompleted, dueDate, sortOrder });
+                new { title, notes, categoryId, listId, isCompleted, dueDate, sortOrder, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;
@@ -122,7 +128,7 @@ namespace ToDoList.Windows.ApiClient
         public async Task<TodoItem> ToggleCompleteAsync(long itemId, bool isCompleted)
         {
             HttpResponseMessage response = await httpClient.PatchAsJsonAsync($"api/items/{itemId}/complete",
-                new { isCompleted });
+                new { isCompleted, clientModifiedDate = DateTime.UtcNow });
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<TodoItem>())!;

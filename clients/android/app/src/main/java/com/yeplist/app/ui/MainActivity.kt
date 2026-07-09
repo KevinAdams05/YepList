@@ -25,6 +25,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.yeplist.app.R
+import com.yeplist.app.YepListApp
+import com.yeplist.app.util.BatteryOptimizationHelper
 import com.yeplist.app.databinding.ActivityMainBinding
 import com.yeplist.app.ui.category.CategoryManagerDialogFragment
 import com.yeplist.app.ui.list.ListSidebarFragment
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_LIST_ID = "extra_list_id"
         const val EXTRA_ADD_TASK = "extra_add_task"
+        private const val PREF_BATTERY_PROMPTED = "battery_opt_prompted"
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -53,8 +56,10 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        // Handle edge-to-edge insets: pad toolbar for status bar, drawer for system bars
-        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
+        // Handle edge-to-edge insets: pad the app bar (not the fixed-height
+        // toolbar) for the status bar so the title/overflow aren't clipped, and
+        // the drawer for system bars.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBar) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(top = systemBars.top)
             insets
@@ -121,6 +126,31 @@ class MainActivity : AppCompatActivity() {
             viewModel.restartForegroundSync()
         }
 
+        maybePromptBatteryOptimization()
+    }
+
+    // On aggressive OEM skins (newer One UI / Android 16) background sync and
+    // widget refresh are killed unless the app is exempt from battery
+    // optimization. Ask once; record that we asked so we don't nag.
+    private fun maybePromptBatteryOptimization() {
+        val prefs = (application as YepListApp).container.prefs
+        if (prefs.getBoolean(PREF_BATTERY_PROMPTED, false)) {
+            return
+        }
+        if (BatteryOptimizationHelper.isIgnoringBatteryOptimizations(this)) {
+            return
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.battery_opt_title)
+            .setMessage(R.string.battery_opt_message)
+            .setPositiveButton(R.string.battery_opt_allow) { _, _ ->
+                BatteryOptimizationHelper.requestIgnore(this)
+            }
+            .setNegativeButton(R.string.battery_opt_not_now, null)
+            .show()
+
+        prefs.edit().putBoolean(PREF_BATTERY_PROMPTED, true).apply()
     }
 
     override fun onResume() {

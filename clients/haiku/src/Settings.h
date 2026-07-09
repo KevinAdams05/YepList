@@ -6,6 +6,7 @@
 #define SETTINGS_H
 
 
+#include <Rect.h>
 #include <String.h>
 
 
@@ -21,11 +22,17 @@ public:
 									{ return fDefaultListId; }
 			void				SetDefaultListId(int64 id);
 
+			BRect				WindowFrame() const { return fWindowFrame; }
+			void				SetWindowFrame(BRect frame);
+			bool				HasWindowFrame() const
+									{ return fWindowFrame.IsValid(); }
+
 private:
 	static status_t				_SettingsPath(BString& path);
 
 			BString				fServerUrl;
 			int64				fDefaultListId;
+			BRect				fWindowFrame;
 };
 
 

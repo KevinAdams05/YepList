@@ -17,5 +17,8 @@ namespace ToDoList.Core.Dtos
         public DateTime? DueDate { get; set; }
 
         public int SortOrder { get; set; }
+
+        /// <summary>When the user created this item (UTC). Server uses UtcNow if null.</summary>
+        public DateTime? ClientModifiedDate { get; set; }
     }
 }

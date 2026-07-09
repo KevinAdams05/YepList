@@ -32,7 +32,7 @@ class CategoryRepository(
         )
         categoryDao.upsert(entity)
 
-        val payload = gson.toJson(CreateCategoryRequest(name, color))
+        val payload = gson.toJson(CreateCategoryRequest(name, color, clientModifiedDate = now))
         pendingOpDao.insert(
             PendingOperationEntity(
                 entityType = "category",
@@ -48,14 +48,15 @@ class CategoryRepository(
 
     suspend fun update(categoryId: Long, name: String, color: String?) {
         val existing = categoryDao.getById(categoryId) ?: return
+        val now = Instant.now().toString()
         val updated = existing.copy(
             name = name,
             color = color,
-            modifiedDate = Instant.now().toString()
+            modifiedDate = now
         )
         categoryDao.upsert(updated)
 
-        val payload = gson.toJson(CreateCategoryRequest(name, color))
+        val payload = gson.toJson(CreateCategoryRequest(name, color, clientModifiedDate = now))
         if (categoryId < 0) {
             val ops = pendingOpDao.getByEntity("category", categoryId)
             val createOp = ops.firstOrNull { it.operationType == "create" }
@@ -70,7 +71,7 @@ class CategoryRepository(
                     operationType = "update",
                     entityId = categoryId,
                     payload = payload,
-                    createdDate = Instant.now().toString()
+                    createdDate = now
                 )
             )
         }

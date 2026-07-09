@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit
 
 object NetworkModule {
 
-    fun createApiService(baseUrl: String): YepListApiService {
-        val client = createOkHttpClient()
+    fun createApiService(baseUrl: String, deviceId: String, deviceName: String): YepListApiService {
+        val client = createOkHttpClient(deviceId, deviceName)
         val retrofit = Retrofit.Builder()
             .baseUrl(if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/")
             .client(client)
@@ -20,11 +20,14 @@ object NetworkModule {
         return retrofit.create(YepListApiService::class.java)
     }
 
-    private fun createOkHttpClient(): OkHttpClient {
+    private fun createOkHttpClient(deviceId: String, deviceName: String): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor(
+                DeviceHeaderInterceptor(deviceId, deviceName, "Android ${android.os.Build.VERSION.SDK_INT}")
+            )
 
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor()

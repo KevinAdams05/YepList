@@ -20,6 +20,10 @@
       <stop offset="0%" style="stop-color:#34A853;stop-opacity:1"/>
       <stop offset="100%" style="stop-color:#2D8F47;stop-opacity:1"/>
     </linearGradient>
+    <linearGradient id="haiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#26A69A;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1B8278;stop-opacity:1"/>
+    </linearGradient>
     <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.12"/>
     </filter>
@@ -27,14 +31,16 @@
 
   <!-- Connection lines -->
   <line x1="360" y1="95" x2="360" y2="155" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
-  <line x1="360" y1="245" x2="150" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
-  <line x1="360" y1="245" x2="360" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
-  <line x1="360" y1="245" x2="570" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
+  <line x1="360" y1="245" x2="97.5" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
+  <line x1="360" y1="245" x2="272.5" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
+  <line x1="360" y1="245" x2="447.5" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
+  <line x1="360" y1="245" x2="622.5" y2="295" stroke="#9B9FB5" stroke-width="2.5" stroke-dasharray="6,4"/>
 
   <!-- Sync labels on lines -->
-  <text x="270" y="278" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(-13, 270, 278)">sync</text>
-  <text x="360" y="278" font-size="10" fill="#9B9FB5" text-anchor="middle">sync</text>
-  <text x="450" y="278" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(13, 450, 278)">sync</text>
+  <text x="228" y="268" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(-11, 228, 268)">sync</text>
+  <text x="316" y="268" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(-30, 316, 268)">sync</text>
+  <text x="404" y="268" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(30, 404, 268)">sync</text>
+  <text x="492" y="268" font-size="10" fill="#9B9FB5" text-anchor="middle" transform="rotate(11, 492, 268)">sync</text>
 
   <!-- MySQL Database -->
   <g filter="url(#shadow)">
@@ -61,34 +67,44 @@
 
   <!-- Windows Client -->
   <g filter="url(#shadow)">
-    <rect x="50" y="295" width="200" height="85" rx="12" fill="url(#winGrad)"/>
+    <rect x="20" y="295" width="155" height="85" rx="12" fill="url(#winGrad)"/>
     <!-- Windows icon (simplified) -->
-    <rect x="82" y="318" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
-    <rect x="93" y="318" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
-    <rect x="82" y="329" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
-    <rect x="93" y="329" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
-    <text x="112" y="332" font-size="14" font-weight="600" fill="#fff" text-anchor="start">Windows</text>
-    <text x="82" y="358" font-size="11" fill="#fff" fill-opacity="0.8">C# WinForms + Krypton</text>
+    <rect x="34" y="318" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
+    <rect x="45" y="318" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
+    <rect x="34" y="329" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
+    <rect x="45" y="329" rx="1" width="9" height="9" fill="#fff" fill-opacity="0.9"/>
+    <text x="60" y="332" font-size="13" font-weight="600" fill="#fff" text-anchor="start">Windows</text>
+    <text x="32" y="358" font-size="10" fill="#fff" fill-opacity="0.8">C# WinForms + Krypton</text>
   </g>
 
   <!-- Linux Client -->
   <g filter="url(#shadow)">
-    <rect x="260" y="295" width="200" height="85" rx="12" fill="url(#linGrad)"/>
+    <rect x="195" y="295" width="155" height="85" rx="12" fill="url(#linGrad)"/>
     <!-- Tux-inspired icon (simplified penguin) -->
-    <circle cx="303" cy="323" r="9" fill="#fff" fill-opacity="0.9"/>
-    <ellipse cx="303" cy="335" rx="7" ry="5" fill="#fff" fill-opacity="0.7"/>
-    <text x="322" y="332" font-size="14" font-weight="600" fill="#fff" text-anchor="start">Linux</text>
-    <text x="292" y="358" font-size="11" fill="#fff" fill-opacity="0.8">Vala + GTK4 + libadwaita</text>
+    <circle cx="217" cy="323" r="9" fill="#fff" fill-opacity="0.9"/>
+    <ellipse cx="217" cy="335" rx="7" ry="5" fill="#fff" fill-opacity="0.7"/>
+    <text x="235" y="332" font-size="13" font-weight="600" fill="#fff" text-anchor="start">Linux</text>
+    <text x="207" y="358" font-size="10" fill="#fff" fill-opacity="0.8">Vala + GTK4 + libadwaita</text>
+  </g>
+
+  <!-- Haiku Client -->
+  <g filter="url(#shadow)">
+    <rect x="370" y="295" width="155" height="85" rx="12" fill="url(#haiGrad)"/>
+    <!-- Window-with-tab icon (Haiku's signature) -->
+    <rect x="384" y="321" width="22" height="16" rx="2" fill="#fff" fill-opacity="0.9"/>
+    <rect x="384" y="315" width="10" height="7" rx="1.5" fill="#fff" fill-opacity="0.9"/>
+    <text x="410" y="332" font-size="13" font-weight="600" fill="#fff" text-anchor="start">Haiku</text>
+    <text x="382" y="358" font-size="10" fill="#fff" fill-opacity="0.8">C++ + Haiku API</text>
   </g>
 
   <!-- Android Client -->
   <g filter="url(#shadow)">
-    <rect x="470" y="295" width="200" height="85" rx="12" fill="url(#andGrad)"/>
+    <rect x="545" y="295" width="155" height="85" rx="12" fill="url(#andGrad)"/>
     <!-- Android icon (simplified) -->
-    <rect x="497" y="324" width="16" height="12" rx="3" fill="#fff" fill-opacity="0.9"/>
-    <line x1="500" y1="322" x2="498" y2="318" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
-    <line x1="510" y1="322" x2="512" y2="318" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
-    <text x="522" y="332" font-size="14" font-weight="600" fill="#fff" text-anchor="start">Android</text>
-    <text x="494" y="358" font-size="11" fill="#fff" fill-opacity="0.8">Kotlin + Room + Glance</text>
+    <rect x="562" y="324" width="16" height="12" rx="3" fill="#fff" fill-opacity="0.9"/>
+    <line x1="565" y1="322" x2="563" y2="318" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+    <line x1="575" y1="322" x2="577" y2="318" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+    <text x="585" y="332" font-size="13" font-weight="600" fill="#fff" text-anchor="start">Android</text>
+    <text x="560" y="358" font-size="10" fill="#fff" fill-opacity="0.8">Kotlin + Room + Glance</text>
   </g>
 </svg>

@@ -218,7 +218,7 @@ public class ApiClient : Object {
         var msg = new Soup.Message ("GET", base_url + path);
         var bytes = yield session.send_and_read_async (msg, Priority.DEFAULT, null);
         check_status (msg);
-        return (string) bytes.get_data ();
+        return bytes_to_string (bytes);
     }
 
     private async string post_async (string path, string json_body) throws Error {
@@ -226,7 +226,7 @@ public class ApiClient : Object {
         msg.set_request_body_from_bytes ("application/json", new Bytes (json_body.data));
         var bytes = yield session.send_and_read_async (msg, Priority.DEFAULT, null);
         check_status (msg);
-        return (string) bytes.get_data ();
+        return bytes_to_string (bytes);
     }
 
     private async string put_async (string path, string json_body) throws Error {
@@ -234,7 +234,7 @@ public class ApiClient : Object {
         msg.set_request_body_from_bytes ("application/json", new Bytes (json_body.data));
         var bytes = yield session.send_and_read_async (msg, Priority.DEFAULT, null);
         check_status (msg);
-        return (string) bytes.get_data ();
+        return bytes_to_string (bytes);
     }
 
     private async string patch_async (string path, string json_body) throws Error {
@@ -242,7 +242,7 @@ public class ApiClient : Object {
         msg.set_request_body_from_bytes ("application/json", new Bytes (json_body.data));
         var bytes = yield session.send_and_read_async (msg, Priority.DEFAULT, null);
         check_status (msg);
-        return (string) bytes.get_data ();
+        return bytes_to_string (bytes);
     }
 
     private async void delete_request_async (string path) throws Error {
@@ -258,6 +258,21 @@ public class ApiClient : Object {
     }
 
     // ── JSON Helpers ──────────────────────────────────────
+
+    // libsoup's send_and_read_async returns a GBytes with no trailing NUL,
+    // so casting the raw data straight to a string lets json-glib's strlen
+    // read past the buffer into non-UTF-8 memory. Copy into a NUL-terminated
+    // buffer so the resulting string has a well-defined length.
+    private string bytes_to_string (Bytes bytes) {
+        unowned uint8[] data = bytes.get_data ();
+        if (data == null || data.length == 0) {
+            return "";
+        }
+        var buffer = new uint8[data.length + 1];
+        Memory.copy (buffer, data, data.length);
+        buffer[data.length] = '\0';
+        return (string) buffer;
+    }
 
     private string builder_to_string (Json.Builder builder) {
         var generator = new Json.Generator ();

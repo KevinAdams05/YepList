@@ -48,4 +48,8 @@
     <string name="about_license">Licensed under the MIT License</string>
     <string name="about_third_party">Third-Party Libraries</string>
     <string name="about_libraries">Kotlin (Apache 2.0) \u2014 JetBrains\nRetrofit 2 (Apache 2.0) \u2014 Square\nOkHttp (Apache 2.0) \u2014 Square\nGson (Apache 2.0) \u2014 Google\nRoom (Apache 2.0) \u2014 Google\nJetpack Glance (Apache 2.0) \u2014 Google\nWorkManager (Apache 2.0) \u2014 Google\nMaterial Components (Apache 2.0) \u2014 Google</string>
+    <string name="battery_opt_title">Keep YepList in sync</string>
+    <string name="battery_opt_message">To keep your lists and home-screen widgets up to date in the background, allow YepList to run without battery optimization. On Samsung devices, also exclude YepList from \u201cSleeping apps\u201d in Settings \u2192 Battery.</string>
+    <string name="battery_opt_allow">Allow</string>
+    <string name="battery_opt_not_now">Not now</string>
 </resources>

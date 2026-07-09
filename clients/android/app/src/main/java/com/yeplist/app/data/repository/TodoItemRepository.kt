@@ -47,7 +47,7 @@ class TodoItemRepository(
         itemDao.upsert(entity)
 
         val payload = gson.toJson(
-            CreateTodoItemRequest(title, notes, categoryId, dueDate, sortOrder)
+            CreateTodoItemRequest(title, notes, categoryId, dueDate, sortOrder, clientModifiedDate = now)
         )
         pendingOpDao.insert(
             PendingOperationEntity(
@@ -74,6 +74,7 @@ class TodoItemRepository(
         listId: Long? = null
     ) {
         val existing = itemDao.getById(itemId) ?: return
+        val now = Instant.now().toString()
         val updated = existing.copy(
             title = title,
             notes = notes,
@@ -82,19 +83,19 @@ class TodoItemRepository(
             dueDate = dueDate,
             sortOrder = sortOrder,
             listId = listId ?: existing.listId,
-            modifiedDate = Instant.now().toString()
+            modifiedDate = now
         )
         itemDao.upsert(updated)
 
         val payload = gson.toJson(
-            UpdateTodoItemRequest(title, notes, categoryId, listId, isCompleted, dueDate, sortOrder)
+            UpdateTodoItemRequest(title, notes, categoryId, listId, isCompleted, dueDate, sortOrder, clientModifiedDate = now)
         )
         if (itemId < 0) {
             val ops = pendingOpDao.getByEntity("item", itemId)
             val createOp = ops.firstOrNull { it.operationType == "create" }
             if (createOp != null) {
                 val createPayload = gson.toJson(
-                    CreateTodoItemRequest(title, notes, categoryId, dueDate, sortOrder)
+                    CreateTodoItemRequest(title, notes, categoryId, dueDate, sortOrder, clientModifiedDate = now)
                 )
                 pendingOpDao.deleteById(createOp.id)
                 pendingOpDao.insert(createOp.copy(id = 0, payload = createPayload))
@@ -106,16 +107,17 @@ class TodoItemRepository(
                     operationType = "update",
                     entityId = itemId,
                     payload = payload,
-                    createdDate = Instant.now().toString()
+                    createdDate = now
                 )
             )
         }
     }
 
     suspend fun toggleComplete(item: TodoItemEntity) {
+        val now = Instant.now().toString()
         val updated = item.copy(
             isCompleted = !item.isCompleted,
-            modifiedDate = Instant.now().toString()
+            modifiedDate = now
         )
         itemDao.upsert(updated)
 
@@ -127,21 +129,21 @@ class TodoItemRepository(
                 val newPayload = gson.toJson(
                     CreateTodoItemRequest(
                         request.title, request.notes, request.categoryId,
-                        request.dueDate, request.sortOrder
+                        request.dueDate, request.sortOrder, clientModifiedDate = now
                     )
                 )
                 pendingOpDao.deleteById(createOp.id)
                 pendingOpDao.insert(createOp.copy(id = 0, payload = newPayload))
             }
         } else {
-            val payload = gson.toJson(ToggleCompleteRequest(updated.isCompleted))
+            val payload = gson.toJson(ToggleCompleteRequest(updated.isCompleted, clientModifiedDate = now))
             pendingOpDao.insert(
                 PendingOperationEntity(
                     entityType = "item",
                     operationType = "toggle_complete",
                     entityId = item.itemId,
                     payload = payload,
-                    createdDate = Instant.now().toString()
+                    createdDate = now
                 )
             )
         }

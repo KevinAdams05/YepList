@@ -21,5 +21,11 @@ namespace ToDoList.Core.Dtos
         public DateTime? DueDate { get; set; }
 
         public int SortOrder { get; set; }
+
+        /// <summary>
+        /// When the user actually made this edit (UTC). Used as the
+        /// newest-edit-wins conflict arbiter. Server uses UtcNow if null.
+        /// </summary>
+        public DateTime? ClientModifiedDate { get; set; }
     }
 }
