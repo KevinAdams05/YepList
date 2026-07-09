@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ToDoList.Core\ToDoList.Core.csproj" />
     <ProjectReference Include="..\ToDoList.Data\ToDoList.Data.csproj" />
   </ItemGroup>

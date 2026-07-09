@@ -172,7 +172,7 @@ const $ = s => document.querySelector(s);
 const fmt = v => v == null ? '' : String(v);
 
 async function loadDevices() {
-  const r = await fetch('admin/logs/devices');
+  const r = await fetch('/admin/logs/devices');
   const devices = await r.json();
   const sel = $('#device');
   for (const d of devices) {
@@ -189,7 +189,7 @@ async function loadLog() {
   if ($('#action').value) p.set('action', $('#action').value);
   if ($('#from').value) p.set('from', new Date($('#from').value).toISOString());
   p.set('limit', $('#limit').value || '200');
-  const r = await fetch('admin/logs/data?' + p.toString());
+  const r = await fetch('/admin/logs/data?' + p.toString());
   const rows = await r.json();
   const tb = $('#rows');
   tb.innerHTML = '';
@@ -214,7 +214,7 @@ async function loadLog() {
 }
 
 async function loadDebug() {
-  const r = await fetch('admin/logs/debug?lines=' + ($('#dlines').value || '200'));
+  const r = await fetch('/admin/logs/debug?lines=' + ($('#dlines').value || '200'));
   $('#debug').textContent = await r.text();
 }
 
