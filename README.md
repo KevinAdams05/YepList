@@ -64,7 +64,7 @@ YepList uses a shared REST API backend with four native clients that sync via ti
 ### Prerequisites
 
 - **Backend**: .NET 10 SDK, MySQL 8.0
-- **Windows Client**: .NET 10 SDK (Windows)
+- **Windows Client**: .NET 10 SDK (builds on Windows; also cross-builds from Linux/macOS via `EnableWindowsTargeting`)
 - **Linux Client**: Vala compiler, GTK4, libadwaita, libsoup-3.0, json-glib-1.0, Meson, Ninja
 - **Haiku Client**: Haiku R1/beta5 with the development tools (or a Haiku cross-build toolchain)
 - **Android Client**: Android Studio with JDK 21+
@@ -91,6 +91,19 @@ YepList uses a shared REST API backend with four native clients that sync via ti
 cd clients/windows
 dotnet build src/ToDoList.Windows
 ```
+
+To produce a distributable, self-contained single-file `.exe` (no .NET runtime
+required on the target machine). This also cross-builds from Linux/macOS thanks
+to `EnableWindowsTargeting`:
+```bash
+cd clients/windows
+dotnet publish src/ToDoList.Windows -c Release -r win-x64 --self-contained true \
+  -p:PublishSingleFile=true -p:EnableWindowsTargeting=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true -o publish-win
+```
+The published `.exe` still reads its assets (`settings.json`, `CHANGELOG.md`,
+`logo-dark.png`, `logo-light.png`) from its own directory, so distribute the
+whole `publish-win` folder together (e.g. zipped), not the `.exe` alone.
 
 **Linux:**
 ```bash
